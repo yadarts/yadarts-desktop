@@ -37,34 +37,35 @@ public class Splash {
 	private static final Logger logger = LoggerFactory.getLogger(Splash.class);
 
 	private int splashPos = 0;
-	private final int SPLASH_MAX = 10;
+	private final int SPLASH_MAX = 5;
 	protected SplashListener finishedListener;
 	private boolean running = true;
 	private ProgressBar bar;
 
+	private Image image;
+
+	private Shell theShell;
+
 	public Splash(Display display, SplashListener l) {
 		finishedListener = l;
-		final Image image = new Image(display, getClass().getResourceAsStream(
+		image = new Image(display, getClass().getResourceAsStream(
 				"/images/splash.jpg"));
 
-		final Shell theShell = new Shell(SWT.ON_TOP);
+		theShell = new Shell(SWT.ON_TOP);
 		initLayout(image, theShell);
 		
 		initShell(display, theShell);
 
-		executeLoading(display, image, theShell);
+		executeLoading(display);
 
 		while (running) {
 			if (!display.readAndDispatch()) {
 				display.sleep();
 			}
 		}
-		
-		finishedListener.onSplashFinished();
 	}
 
-	protected void executeLoading(Display display, final Image image,
-			final Shell splash) {
+	protected void executeLoading(Display display) {
 		display.asyncExec(new Runnable() {
 			public void run() {
 
@@ -78,10 +79,8 @@ public class Splash {
 					bar.setSelection(splashPos);
 				}
 				
-				splash.close();
-				image.dispose();
-				splash.dispose();
 				running = false;
+				finishedListener.onSplashFinished(Splash.this);
 			}
 		});
 	}
@@ -90,7 +89,7 @@ public class Splash {
 		splash.pack();
 
 		Rectangle splashBounds = splash.getBounds();
-		Rectangle displayBounds = display.getBounds();
+		Rectangle displayBounds = display.getPrimaryMonitor().getBounds();
 		int x = (displayBounds.width - splashBounds.width) / 2;
 		int y = (displayBounds.height - splashBounds.height) / 2;
 		splash.setLocation(x, y);
@@ -118,10 +117,18 @@ public class Splash {
 		progressData.bottom = new FormAttachment(100, 0);
 		bar.setLayoutData(progressData);
 	}
+	
+	public void closeSelf() {
+		theShell.close();
+		image.dispose();
+		theShell.dispose();		
+	}
 
 	public static interface SplashListener {
 
-		public void onSplashFinished();
+		public void onSplashFinished(Splash s);
 
 	}
+
+
 }

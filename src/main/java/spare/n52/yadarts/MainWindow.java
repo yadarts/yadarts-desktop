@@ -16,53 +16,113 @@
  */
 package spare.n52.yadarts;
 
+
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.events.KeyAdapter;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.FillLayout;
-import org.eclipse.swt.layout.FormAttachment;
-import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import spare.n52.yadarts.config.Configuration;
+import spare.n52.yadarts.i18n.I18N;
+import spare.n52.yadarts.layout.BasicGameView;
+
 public class MainWindow {
-	
-	private static final Logger logger = LoggerFactory.getLogger(MainWindow.class);
 
-	public MainWindow(Display display) {
-		Shell shell = new Shell(display);
-		shell.setFullScreen(true);
-		shell.setMaximized(true);
+	private static final Logger logger = LoggerFactory
+			.getLogger(MainWindow.class);
+	private Shell shell;
+	private boolean fullscreen;
 
-		Image image = new Image(display, getClass().getResourceAsStream("/images/board-m.png"));
+	public MainWindow(Display display, MainWindowOpenedListener l) {
+		shell = new Shell(display);
+		this.fullscreen = Configuration.Instance.instance().isAutoFullScreen();
+		shell.setFullScreen(this.fullscreen);
+//		shell.setMaximized(true);
+		shell.setText("yadarts desktop edition");
 		
-		initLayout(image, shell);
+		initLayout();
+
+		appendKeyListeners();
 
 		shell.open();
-		
+
+		l.onMainWindowOpened();
+
 		logger.info("bootstrapping finished!");
-		
+
 		while (!shell.isDisposed()) {
 			if (!display.readAndDispatch()) {
 				display.sleep();
 			}
 		}
 		display.dispose();
+		
+		try {
+			EventEngine.instance().shutdown();
+		} catch (InitializationException e) {
+			logger.warn(e.getMessage(), e);
+		}
 	}
-	
-	protected void initLayout(final Image image, final Shell shell) {
-		Label label = new Label(shell, SWT.NONE);
-		label.setImage(image);
 
+	protected void initLayout() {
+		new BasicGameView(shell, SWT.NONE);
+		
 		FillLayout layout = new FillLayout();
+		layout.marginHeight = 5;
+		layout.marginWidth = 5;
 		shell.setLayout(layout);
 
-		FormData labelData = new FormData();
-		labelData.right = new FormAttachment(100, 0);
-		labelData.bottom = new FormAttachment(100, 0);
-		label.setLayoutData(labelData);
+        Menu menuBar = new Menu(shell, SWT.BAR);
+        MenuItem cascadeFileMenu = new MenuItem(menuBar, SWT.CASCADE);
+        cascadeFileMenu.setText(I18N.getString("File"));
+        
+        Menu fileMenu = new Menu(shell, SWT.DROP_DOWN);
+        cascadeFileMenu.setMenu(fileMenu);
 
-	}	
+        MenuItem exitItem = new MenuItem(fileMenu, SWT.PUSH);
+        exitItem.setText(I18N.getString("Exit"));
+        shell.setMenuBar(menuBar);
+
+        exitItem.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                shell.getDisplay().dispose();
+                System.exit(0);
+            }
+        });
+        
+        shell.pack();
+	}
+
+	private void appendKeyListeners() {
+		shell.addKeyListener(new KeyAdapter() {
+
+			@Override
+			public void keyPressed(KeyEvent e) {
+				if (e.keyCode == SWT.F11) {
+					switchFullscreenState();
+				}
+			}
+
+		});
+	}
+
+	protected void switchFullscreenState() {
+		this.fullscreen = !this.fullscreen;
+		shell.setFullScreen(fullscreen);
+	}
+
+	public static interface MainWindowOpenedListener {
+
+		void onMainWindowOpened();
+
+	}
 }

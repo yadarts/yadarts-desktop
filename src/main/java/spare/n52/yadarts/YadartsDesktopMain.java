@@ -28,18 +28,24 @@ public class YadartsDesktopMain {
 
 	public static void main(String[] args) {
 		logger.info("bootstrapping yadarts desktop...");
-		final Display display = new Display();
+		final Display display = Display.getDefault();
 		new Splash(display, new Splash.SplashListener() {
 
 			@Override
-			public void onSplashFinished() {
-				startMainApp(display);
+			public void onSplashFinished(Splash s) {
+				startMainApp(display, s);
 			}
 		});
 	}
 
-	protected static void startMainApp(Display display) {
-		new MainWindow(display);
+	protected static void startMainApp(Display display, final Splash splash) {
+		new MainWindow(display, new MainWindow.MainWindowOpenedListener() {
+			
+			@Override
+			public void onMainWindowOpened() {
+				splash.closeSelf();
+			}
+		});
 	}
 
 }
