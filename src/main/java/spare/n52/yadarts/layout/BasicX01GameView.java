@@ -100,7 +100,8 @@ public class BasicX01GameView extends Composite implements
 	private void startGame() throws InitializationException,
 			AlreadyRunningException {
 		EventEngine engine = EventEngine.instance();
-		x01Game = new GenericX01Game(players, 301, this);
+		x01Game = new GenericX01Game(players, 301);
+		x01Game.registerGameListener(this);
 		engine.registerListener(x01Game);
 		engine.start();
 	}
@@ -196,16 +197,16 @@ public class BasicX01GameView extends Composite implements
 	}
 
 	@Override
-	public void onCurrentPlayerChanged(final Player p, int remaining) {
+	public void onCurrentPlayerChanged(final Player p, Score remaining) {
 		playerTable.setCurrentPlayer(p, remaining);
 		updateLabel(turnSummary, "");
-		remainingScoreForPlayer(p, remaining);
+		onRemainingScoreForPlayer(p, remaining);
 	}
 
 	@Override
-	public void onBust(final Player p, int remaining) {
+	public void onBust(final Player p, Score remaining) {
 		String s = String.format(I18N.getString("playerBusted"),
-				p.getName(), remaining);
+				p.getName(), remaining.getTotalScore());
 		logger.info(s);
 		updateLabel(statusBar, s);
 		playerTable.setRemainingScore(p, remaining);
@@ -236,16 +237,16 @@ public class BasicX01GameView extends Composite implements
 	}
 
 	@Override
-	public void roundStarted(int rounds) {
+	public void onRoundStarted(int rounds) {
 		logger.info("+++++++++++++++++++");
 		logger.info("Round {} started!", rounds);
 		logger.info("+++++++++++++++++++");
-		updateLabel(statusBar, String.format("Round %d started!", rounds));
+		updateLabel(statusBar, String.format(I18N.getString("roundStarted"), rounds));
 		updateLabel(roundLabel, Integer.toString(rounds));
 	}
 
 	@Override
-	public void provideFinishingCombination(
+	public void onFinishingCombination(
 			List<List<PointEvent>> finishingCombinations) {
 		logger.info("Player can finished with the following combinations:");
 
@@ -265,44 +266,44 @@ public class BasicX01GameView extends Composite implements
 	}
 
 	@Override
-	public void onTurnFinished(Player finishedPlayer, int remainingScore) {
+	public void onTurnFinished(Player finishedPlayer, Score remainingScore) {
 		logger.info("Player {} finished the turn. Remaining points: {}",
-				finishedPlayer, remainingScore);
+				finishedPlayer, remainingScore.getTotalScore());
 		updateLabel(statusBar, String.format(
-				"Player %s finished the turn. Remaining points: %d",
-				finishedPlayer.getName(), remainingScore));
+				I18N.getString("playerFinishedTurn"),
+				finishedPlayer.getName(), remainingScore.getTotalScore()));
 	}
 
 	@Override
-	public void remainingScoreForPlayer(Player currentPlayer, int remainingScore) {
+	public void onRemainingScoreForPlayer(Player currentPlayer, Score remainingScore) {
 		logger.info("Player {}'s remaining points: {}", currentPlayer,
-				remainingScore);
-		updateLabel(currentScore, Integer.toString(remainingScore));
+				remainingScore.getTotalScore());
+		updateLabel(currentScore, Integer.toString(remainingScore.getTotalScore()));
 		playerTable.setRemainingScore(currentPlayer, remainingScore);
 	}
 
 	@Override
 	public void requestNextPlayerEvent() {
 		logger.info("Please press 'Next Player'!");
-		updateLabel(statusBar, "Please press 'Next Player'!");
+		updateLabel(statusBar, I18N.getString("requestNextPlayer"));
 	}
 
 	@Override
-	public void playerFinished(Player currentPlayer) {
+	public void onPlayerFinished(Player currentPlayer) {
 		logger.info("Player {} finished!!!!!!! You are a Dart god!",
 				currentPlayer);
-		updateLabel(statusBar, "Player {} finished!!!!!!! You are a Dart god!");
+		updateLabel(statusBar, String.format(I18N.getString("playerFinished"), currentPlayer.getName()));
 	}
 
 	@Override
-	public void onGameFinished(Map<Player, Score> playerScoreMap) {
+	public void onGameFinished(Map<Player, Score> playerScoreMap, List<Player> winner) {
 		logger.info("The game has ended!");
 
 		for (Player player : playerScoreMap.keySet()) {
 			logger.info("{}: {}", player, playerScoreMap.get(player));
 		}
 
-		updateLabel(statusBar, "The game has ended!");
+		updateLabel(statusBar, String.format(I18N.getString("gameHasEnded"), winner.toString()));
 		
 		try {
 			EventEngine.instance().shutdown();
