@@ -22,6 +22,7 @@ import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Menu;
@@ -44,8 +45,8 @@ public class MainWindow {
 	public MainWindow(Display display, MainWindowOpenedListener l) {
 		shell = new Shell(display);
 		this.fullscreen = Configuration.Instance.instance().isAutoFullScreen();
-		shell.setFullScreen(this.fullscreen);
-//		shell.setMaximized(true);
+		
+		shell.setMinimumSize(800, 600);
 		shell.setText("yadarts desktop edition");
 		
 		initLayout();
@@ -53,6 +54,13 @@ public class MainWindow {
 		appendKeyListeners();
 
 		shell.open();
+		
+		if (this.fullscreen) {
+			shell.setFullScreen(this.fullscreen);
+		}
+		else {
+			resolvePriorWindowState();
+		}
 
 		l.onMainWindowOpened();
 
@@ -70,6 +78,16 @@ public class MainWindow {
 		} catch (InitializationException e) {
 			logger.warn(e.getMessage(), e);
 		}
+	}
+
+	private void resolvePriorWindowState() {
+		shell.setSize(1280, 720);
+		
+		Rectangle splashBounds = shell.getBounds();
+		Rectangle displayBounds = shell.getDisplay().getPrimaryMonitor().getBounds();
+		int x = (displayBounds.width - splashBounds.width) / 2;
+		int y = (displayBounds.height - splashBounds.height) / 2;
+		shell.setLocation(x, y);
 	}
 
 	protected void initLayout() {
