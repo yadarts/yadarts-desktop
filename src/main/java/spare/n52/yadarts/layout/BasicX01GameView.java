@@ -66,6 +66,7 @@ public class BasicX01GameView extends Composite implements
 	private List<Player> players;
 	private PlayerTableView playerTable;
 	private int targetScore;
+	private Label roundLabel;
 	
 	public BasicX01GameView(Composite parent, int style, int targetScore) {
 		this(parent, style, thePlayers, targetScore);
@@ -131,6 +132,12 @@ public class BasicX01GameView extends Composite implements
 		RowLayout leftBarLayout = new RowLayout(SWT.VERTICAL);
 		leftBarLayout.spacing = 5;
 		rightBar.setLayout(leftBarLayout);
+		
+		new Label(rightBar, SWT.UNDERLINE_SINGLE).setText(I18N.getString("currentRound").concat(":"));
+		roundLabel = new Label(rightBar, SWT.NONE);
+		roundLabel.setText("1");
+		roundLabel.setFont(new Font(getDisplay(), new FontData("Arial", 16,
+				SWT.NONE)));
 
 		new Label(rightBar, SWT.UNDERLINE_SINGLE).setText(I18N.getString("turnThrows").concat(":"));
 		turnSummary = new Label(rightBar, SWT.NONE);
@@ -234,6 +241,7 @@ public class BasicX01GameView extends Composite implements
 		logger.info("Round {} started!", rounds);
 		logger.info("+++++++++++++++++++");
 		updateLabel(statusBar, String.format("Round %d started!", rounds));
+		updateLabel(roundLabel, Integer.toString(rounds));
 	}
 
 	@Override
