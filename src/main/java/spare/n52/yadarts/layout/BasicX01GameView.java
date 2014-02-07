@@ -201,6 +201,7 @@ public class BasicX01GameView extends Composite implements
 				p.getName(), remaining);
 		logger.info(s);
 		updateLabel(statusBar, s);
+		playerTable.setRemainingScore(p, remaining);
 	}
 
 	@Override
