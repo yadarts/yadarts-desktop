@@ -27,6 +27,7 @@ import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
+import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.slf4j.Logger;
@@ -41,6 +42,7 @@ import spare.n52.yadarts.entity.impl.PlayerImpl;
 import spare.n52.yadarts.games.GameStatusUpdateListener;
 import spare.n52.yadarts.games.Score;
 import spare.n52.yadarts.games.x01.GenericX01Game;
+import spare.n52.yadarts.i18n.I18N;
 import spare.n52.yadarts.layout.board.BoardView;
 
 public class BasicGameView extends Composite implements
@@ -55,7 +57,7 @@ public class BasicGameView extends Composite implements
 	private Composite leftBar;
 	private Composite rightBar;
 	private List<Player> thePlayers = Arrays.asList(new Player[] {
-			new PlayerImpl("Benjamin"), new PlayerImpl("Jan"),
+			new PlayerImpl("Jan"), new PlayerImpl("Benjamin"),
 			new PlayerImpl("Eike"), new PlayerImpl("Matthes") });
 	private Composite bottomBar;
 	private Label statusBar;
@@ -113,13 +115,13 @@ public class BasicGameView extends Composite implements
 		rightBarData.bottom = new FormAttachment(80);
 		rightBar.setLayoutData(rightBarData);
 
-		FillLayout fillLayout = new FillLayout(SWT.VERTICAL);
-		fillLayout.marginHeight = 5;
-		fillLayout.marginWidth = 5;
-		rightBar.setLayout(fillLayout);
+		RowLayout leftBarLayout = new RowLayout(SWT.VERTICAL);
+		leftBarLayout.spacing = 5;
+		rightBar.setLayout(leftBarLayout);
 
+		new Label(rightBar, SWT.UNDERLINE_SINGLE).setText(I18N.getString("turnThrows").concat(":"));
 		turnSummary = new Label(rightBar, SWT.NONE);
-		turnSummary.setFont(new Font(getDisplay(), new FontData("Arial", 24,
+		turnSummary.setFont(new Font(getDisplay(), new FontData("Arial", 16,
 				SWT.NONE)));
 	}
 
@@ -132,19 +134,20 @@ public class BasicGameView extends Composite implements
 		leftBarData.bottom = new FormAttachment(80);
 		leftBar.setLayoutData(leftBarData);
 
-		FillLayout fillLayout = new FillLayout(SWT.VERTICAL);
-		fillLayout.marginHeight = 5;
-		fillLayout.marginWidth = 5;
-		leftBar.setLayout(fillLayout);
+		RowLayout leftBarLayout = new RowLayout(SWT.VERTICAL);
+		leftBarLayout.spacing = 5;
+		leftBar.setLayout(leftBarLayout);
 
+		new Label(leftBar, SWT.UNDERLINE_SINGLE).setText(I18N.getString("theTurnIsOn").concat(":"));
+		currentPlayer = new Label(leftBar, SWT.NONE);
+		currentPlayer.setFont(new Font(getDisplay(), new FontData("Arial", 24,
+				SWT.BOLD)));
+
+		new Label(leftBar, SWT.UNDERLINE_SINGLE).setText(I18N.getString("remainingScore").concat(":"));
 		currentScore = new Label(leftBar, SWT.NONE);
 		currentScore.setFont(new Font(getDisplay(), new FontData("Arial", 24,
 				SWT.NONE)));
 		currentScore.setText("301");
-
-		currentPlayer = new Label(leftBar, SWT.NONE);
-		currentPlayer.setFont(new Font(getDisplay(), new FontData("Arial", 24,
-				SWT.BOLD)));
 
 	}
 
@@ -159,7 +162,7 @@ public class BasicGameView extends Composite implements
 		bottomBar.setLayoutData(leftBarData);
 
 		statusBar = new Label(bottomBar, SWT.NONE);
-		statusBar.setFont(new Font(getDisplay(), new FontData("Arial", 24,
+		statusBar.setFont(new Font(getDisplay(), new FontData("Arial", 14,
 				SWT.NONE)));
 	}
 
@@ -168,6 +171,7 @@ public class BasicGameView extends Composite implements
 			@Override
 			public void run() {
 				theLabel.setText(value);
+				theLabel.pack();
 			}
 		});
 	}
@@ -181,7 +185,7 @@ public class BasicGameView extends Composite implements
 
 	@Override
 	public void onBust(final Player p, int remaining) {
-		String s = String.format("Player %s busted! Remaining score: %d",
+		String s = String.format(I18N.getString("playerBusted"),
 				p.getName(), remaining);
 		logger.info(s);
 		updateLabel(statusBar, s);
