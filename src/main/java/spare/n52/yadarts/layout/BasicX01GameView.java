@@ -27,6 +27,8 @@ import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
@@ -45,25 +47,36 @@ import spare.n52.yadarts.games.x01.GenericX01Game;
 import spare.n52.yadarts.i18n.I18N;
 import spare.n52.yadarts.layout.board.BoardView;
 
-public class BasicGameView extends Composite implements
+public class BasicX01GameView extends Composite implements
 		GameStatusUpdateListener {
 
 	private static final Logger logger = LoggerFactory
-			.getLogger(BasicGameView.class);
+			.getLogger(BasicX01GameView.class);
 	private Label currentScore;
-	private Label currentPlayer;
 	private BoardView theBoard;
 	private Label turnSummary;
 	private Composite leftBar;
 	private Composite rightBar;
-	private List<Player> thePlayers = Arrays.asList(new Player[] {
+	private static List<Player> thePlayers = Arrays.asList(new Player[] {
 			new PlayerImpl("Jan"), new PlayerImpl("Benjamin"),
 			new PlayerImpl("Eike"), new PlayerImpl("Matthes") });
 	private Composite bottomBar;
 	private Label statusBar;
+	private GenericX01Game x01Game;
+	private List<Player> players;
+	private PlayerTableView playerTable;
+	private int targetScore;
+	
+	public BasicX01GameView(Composite parent, int style, int targetScore) {
+		this(parent, style, thePlayers, targetScore);
+	}
 
-	public BasicGameView(Composite parent, int style) {
+	public BasicX01GameView(Composite parent, int style, List<Player> playerList, int targetScore) {
 		super(parent, style);
+		
+		this.players = playerList;
+		this.targetScore = targetScore;
+		
 		FormLayout formLayout = new FormLayout();
 		formLayout.marginHeight = 5;
 		formLayout.marginWidth = 5;
@@ -86,7 +99,7 @@ public class BasicGameView extends Composite implements
 	private void startGame() throws InitializationException,
 			AlreadyRunningException {
 		EventEngine engine = EventEngine.instance();
-		GenericX01Game x01Game = new GenericX01Game(thePlayers, 301, this);
+		x01Game = new GenericX01Game(players, 301, this);
 		engine.registerListener(x01Game);
 		engine.start();
 	}
@@ -134,14 +147,13 @@ public class BasicGameView extends Composite implements
 		leftBarData.bottom = new FormAttachment(80);
 		leftBar.setLayoutData(leftBarData);
 
-		RowLayout leftBarLayout = new RowLayout(SWT.VERTICAL);
-		leftBarLayout.spacing = 5;
+		GridLayout leftBarLayout = new GridLayout(1, true);
 		leftBar.setLayout(leftBarLayout);
-
+		
 		new Label(leftBar, SWT.UNDERLINE_SINGLE).setText(I18N.getString("theTurnIsOn").concat(":"));
-		currentPlayer = new Label(leftBar, SWT.NONE);
-		currentPlayer.setFont(new Font(getDisplay(), new FontData("Arial", 24,
-				SWT.BOLD)));
+		playerTable = new PlayerTableView(leftBar, SWT.NONE, players, targetScore);
+		GridData data = new GridData(SWT.FILL, SWT.FILL, true, false);
+		playerTable.setLayoutData(data);
 
 		new Label(leftBar, SWT.UNDERLINE_SINGLE).setText(I18N.getString("remainingScore").concat(":"));
 		currentScore = new Label(leftBar, SWT.NONE);
@@ -178,7 +190,7 @@ public class BasicGameView extends Composite implements
 
 	@Override
 	public void onCurrentPlayerChanged(final Player p, int remaining) {
-		updateLabel(currentPlayer, p.getName());
+		playerTable.setCurrentPlayer(p, remaining);
 		updateLabel(turnSummary, "");
 		remainingScoreForPlayer(p, remaining);
 	}
@@ -257,6 +269,7 @@ public class BasicGameView extends Composite implements
 		logger.info("Player {}'s remaining points: {}", currentPlayer,
 				remainingScore);
 		updateLabel(currentScore, Integer.toString(remainingScore));
+		playerTable.setRemainingScore(currentPlayer, remainingScore);
 	}
 
 	@Override
@@ -281,6 +294,12 @@ public class BasicGameView extends Composite implements
 		}
 
 		updateLabel(statusBar, "The game has ended!");
+		
+		try {
+			EventEngine.instance().shutdown();
+		} catch (InitializationException e) {
+			logger.warn(e.getMessage(), e);
+		}
 	}
 
 	@Override

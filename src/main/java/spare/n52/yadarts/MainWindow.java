@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import spare.n52.yadarts.config.Configuration;
 import spare.n52.yadarts.i18n.I18N;
-import spare.n52.yadarts.layout.BasicGameView;
+import spare.n52.yadarts.layout.BasicX01GameView;
 
 public class MainWindow {
 
@@ -73,7 +73,7 @@ public class MainWindow {
 	}
 
 	protected void initLayout() {
-		new BasicGameView(shell, SWT.NONE);
+		new BasicX01GameView(shell, SWT.NONE, 301);
 		
 		FillLayout layout = new FillLayout();
 		layout.marginHeight = 5;

@@ -49,6 +49,7 @@ public class BoardView extends Composite {
 
 		imageM = new Image(this.getDisplay(), getClass()
 				.getResourceAsStream("/images/board-m.png"));
+		
 		imageHi = new Image(this.getDisplay(), getClass()
 				.getResourceAsStream("/images/board-hi.png"));
 		imageLo = new Image(this.getDisplay(), getClass()
