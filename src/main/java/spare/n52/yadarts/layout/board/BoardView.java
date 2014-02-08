@@ -16,6 +16,8 @@
  */
 package spare.n52.yadarts.layout.board;
 
+import java.io.FileNotFoundException;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTException;
 import org.eclipse.swt.events.ControlAdapter;
@@ -31,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import spare.n52.yadarts.entity.PointEvent;
+import spare.n52.yadarts.themes.Theme;
 
 public class BoardView extends Composite {
 	
@@ -47,13 +50,22 @@ public class BoardView extends Composite {
 		super(parent, style);
 		this.setLayout(new FillLayout());
 
-		imageM = new Image(this.getDisplay(), getClass()
-				.getResourceAsStream("/images/board-m.png"));
-		
-		imageHi = new Image(this.getDisplay(), getClass()
-				.getResourceAsStream("/images/board-hi.png"));
-		imageLo = new Image(this.getDisplay(), getClass()
-				.getResourceAsStream("/images/board-lo.png"));
+		try {
+			imageM = Theme.getCurrentTheme().getBoardM(getDisplay());
+			imageHi = Theme.getCurrentTheme().getBoardHi(getDisplay());
+			imageLo = Theme.getCurrentTheme().getBoardLo(getDisplay());
+		} catch (FileNotFoundException e1) {
+			logger.warn(e1.getMessage(), e1);
+			try {
+				imageM = Theme.getDefault().getBoardM(getDisplay());
+				imageHi = Theme.getDefault().getBoardHi(getDisplay());
+				imageLo = Theme.getDefault().getBoardLo(getDisplay());
+			} catch (FileNotFoundException e2) {
+				logger.warn("The default theme is not available! {}", e2.getMessage());
+				throw new IllegalStateException("The default theme is not available");
+			}
+			
+		}
 		
 		theBoard = new Label(this, SWT.NONE);
 		theBoard.setImage(imageM);
