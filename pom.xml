@@ -11,6 +11,8 @@
 
 	<artifactId>yadarts-desktop</artifactId>
 	<packaging>jar</packaging>
+	
+	<inceptionYear>2014</inceptionYear>
 
 	<properties>
 		<swt.version>4.3</swt.version>
