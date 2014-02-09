@@ -243,6 +243,7 @@ public class BasicX01GameView extends Composite implements
 		playerTable.setCurrentPlayer(p, remaining);
 		updateLabel(turnSummary, "");
 		onRemainingScoreForPlayer(p, remaining);
+		theBoard.removeAllArrows();
 	}
 
 	@Override
@@ -356,8 +357,7 @@ public class BasicX01GameView extends Composite implements
 
 	@Override
 	public void onNextPlayerPressed() {
-		// TODO Auto-generated method stub
-
+		theBoard.removeAllArrows();
 	}
 
 	@Override
