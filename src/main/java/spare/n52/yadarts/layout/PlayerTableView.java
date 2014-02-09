@@ -110,6 +110,15 @@ public class PlayerTableView extends Composite {
 		table.getColumn(1).pack();
 		table.getColumn(2).pack();		
 		table.pack();
+		
+		/*
+		 * reset the font to default
+		 */
+		for (int i = 1; i < players.size(); i++) {
+			TableItem item = table.getItem(i+1);
+			item.setFont(defaultFont);
+			
+		}
 	}
 
 	public void setCurrentPlayer(final Player p, final Score remaining) {
