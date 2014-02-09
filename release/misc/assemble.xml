@@ -1,0 +1,29 @@
+<assembly>
+	<id>binaries</id>
+	<formats>
+		<format>dir</format>
+		<format>zip</format>
+		<format>tar.gz</format>
+	</formats>
+	<includeBaseDirectory>false</includeBaseDirectory>
+	<dependencySets>
+		<dependencySet>
+			<outputDirectory>bin</outputDirectory>
+			<includes>
+				<include>spare.n52.yadarts:*</include>
+			</includes>
+		</dependencySet>
+		<dependencySet>
+			<outputDirectory>lib</outputDirectory>
+			<excludes>
+				<exclude>spare.n52.yadarts:*</exclude>
+			</excludes>
+		</dependencySet>
+	</dependencySets>
+	<fileSets>
+		<fileSet>
+			<directory>scripts</directory>
+			<outputDirectory>/</outputDirectory>
+		</fileSet>
+	</fileSets>
+</assembly>
