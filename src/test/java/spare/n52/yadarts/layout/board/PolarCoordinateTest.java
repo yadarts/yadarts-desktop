@@ -32,14 +32,14 @@ public class PolarCoordinateTest {
 		Point result = coord.calculatePoint(new Point(500, 500), 500);
 		
 		Assert.assertTrue(result.x == 500);
-		Assert.assertTrue(result.y == 300);
+		Assert.assertTrue(result.y == 250);
 		
 		coord = new DynamicPolarCoordinate(20, 1, true);
 		
 		result = coord.calculatePoint(new Point(500, 500), 500);
 		
 		Assert.assertTrue(result.x == 500);
-		Assert.assertTrue(result.y == 200);
+		Assert.assertTrue(result.y == 175);
 		
 		/*
 		 * 11
@@ -51,7 +51,7 @@ public class PolarCoordinateTest {
 		/*
 		 * some tolerance required..
 		 */
-		Assert.assertTrue(result.x == 200);
+		Assert.assertTrue(result.x == 175);
 		Assert.assertTrue(result.y - 500 <= 2);
 	
 		/*
@@ -65,7 +65,7 @@ public class PolarCoordinateTest {
 		 * some tolerance required..
 		 */
 		Assert.assertTrue(result.x - 500 <= 2);
-		Assert.assertTrue(result.y - 800 <= 2);
+		Assert.assertTrue(result.y - 825 <= 2);
 		
 		/*
 		 * 6
@@ -73,12 +73,12 @@ public class PolarCoordinateTest {
 		coord = new DynamicPolarCoordinate(6, 1, true);
 		
 		result = coord.calculatePoint(new Point(500, 500), 500);
-		
+
 		/*
 		 * some tolerance required..
 		 */
-		Assert.assertTrue(result.x - 800 <= 2);
-		Assert.assertTrue(result.y - 800 <= 2);
+		Assert.assertTrue(result.x - 825 <= 2);
+		Assert.assertTrue(result.y - 500 <= 2);
 	}
 	
 }
