@@ -25,5 +25,9 @@
 			<directory>scripts</directory>
 			<outputDirectory>/</outputDirectory>
 		</fileSet>
+		<fileSet>
+			<directory>themes</directory>
+			<outputDirectory>/themes</outputDirectory>
+		</fileSet>
 	</fileSets>
 </assembly>

@@ -18,16 +18,14 @@ package spare.n52.yadarts.themes;
 
 import java.io.File;
 import java.io.FileFilter;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.net.URISyntaxException;
-import java.net.URL;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.eclipse.swt.graphics.Device;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.widgets.Display;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,19 +33,33 @@ import org.slf4j.LoggerFactory;
  * A theme is a set of image files that provide the
  * basic style of the UI.
  */
-public class Theme {
+public abstract class Theme {
 	
 	private static final Logger logger = LoggerFactory.getLogger(Theme.class);
 	
-	private static final String BOARD_HI = "board-hi.jpg";
-	private static final String BOARD_M = "board-m.jpg";
-	private static final String BOARD_LO = "board-lo.jpg";
-	private static final String BASE_DIR = "/themes";
-	private static final String DEFAULT_THEME = "plain";
-	private static final String BACKGROUND = "background.jpg";
-	private static final String BACKGROUND_ALT = "background_alt.jpg";
-	private static final String CORNER_TOP_LEFT = "corner_topleft.jpg";
-	private static final String BORDER_LEFT = "border_left.jpg";
+	protected static final String BOARD_HI = "board-hi.jpg";
+	protected static final String BOARD_M = "board-m.jpg";
+	protected static final String BOARD_LO = "board-lo.jpg";
+	protected static final String BASE_DIR = "/themes";
+	protected static final String DEFAULT_THEME = "plain";
+	protected static final String BACKGROUND = "background.jpg";
+	protected static final String BACKGROUND_ALT = "background_alt.jpg";
+	protected static final String CORNER_TOP_LEFT = "corner_topleft.jpg";
+	protected static final String BORDER_LEFT = "border_left.jpg";
+
+	protected static final FileFilter directoryFilter = new FileFilter() {
+				
+				@Override
+				public boolean accept(File pathname) {
+					/*
+					 * use directories, but not the default. we already have that
+					 */
+					if (pathname.isDirectory() && !pathname.equals(DEFAULT_THEME)) {
+						return true;
+					}
+					return false;
+				}
+			};
 	
 	private static Theme defaultTheme;
 	private static Map<String, Theme> availableThemes = new HashMap<>();
@@ -55,10 +67,10 @@ public class Theme {
 	
 	static {
 		try {
-			defaultTheme = new Theme(BASE_DIR + "/"+ DEFAULT_THEME);
+			defaultTheme = new ClasspathTheme(BASE_DIR + "/"+ DEFAULT_THEME);
 			currentTheme = defaultTheme;
-			resolveThemes();
-		} catch (IOException | URISyntaxException e) {
+			resolveThemesFromFileSystem();
+		} catch (URISyntaxException e) {
 			logger.warn(e.getMessage(), e);
 		}
 	}
@@ -80,43 +92,29 @@ public class Theme {
 		return currentTheme;
 	}
 	
-	private static void resolveThemes() throws IOException, URISyntaxException {
-		URL baseDirUrl = Theme.class.getResource(BASE_DIR);
-		File baseDir = new File(baseDirUrl.toURI());
+	
+	private static void resolveThemesFromFileSystem() {
+		logger.info("Resolving themes from file system...");
+		File[] candidates = new File(".".concat(BASE_DIR)).listFiles(directoryFilter);
 		
-		if (baseDir.exists() && baseDir.isDirectory()) {
-			File[] candidates = baseDir.listFiles(new FileFilter() {
-				
-				@Override
-				public boolean accept(File pathname) {
-					/*
-					 * use directories, but not the default. we already have that
-					 */
-					if (pathname.isDirectory() && !pathname.equals(DEFAULT_THEME)) {
-						return true;
-					}
-					return false;
-				}
-			});
-			
+		if (candidates != null) {
+			logger.info("Found theme candidates: {}", Arrays.toString(candidates));
 			instantiateThemes(candidates);
 		}
+		else {
+			logger.info("No theme candidates found on the file system.");
+		}
+		
+		
 	}
 
 	private static void instantiateThemes(File[] candidates) {
 		for (File c : candidates) {
-			File[] contents = c.listFiles(new FileFilter() {
-				
-				@Override
-				public boolean accept(File pathname) {
-					return validateDirectoryContents(pathname);
-				}
-
-			});
-			
-			if (contents.length == 3) {
+			if (validateDirectoryContents(c.listFiles())) {
 				try {
-					availableThemes.put(c.getName(), new Theme(c));
+					FileSystemTheme fst = new FileSystemTheme(c);
+					availableThemes.put(c.getName(), fst);
+					logger.info("Added theme: {}", c.getName());
 				}
 				catch (IllegalStateException e) {
 					logger.warn("Could not instantiate theme {}: {}", c.getName(), e.getMessage());
@@ -125,169 +123,43 @@ public class Theme {
 		}
 	}
 	
-	private static boolean validateDirectoryContents(File pathname) {
+	private static boolean validateDirectoryContents(File[] files) {
 		boolean hasHi = false;
 		boolean hasM = false;
 		boolean hasLo = false;
 		
-		switch (pathname.getName()) {
-		case BOARD_HI:
-			hasHi = true;
-			break;
-		case BOARD_M:
-			hasM = true;
-			break;
-		case BOARD_LO:
-			hasLo = true;
-			break;
-		default:
-			break;
+		for (File file : files) {
+			switch (file.getName()) {
+			case BOARD_HI:
+				hasHi = true;
+				break;
+			case BOARD_M:
+				hasM = true;
+				break;
+			case BOARD_LO:
+				hasLo = true;
+				break;
+			default:
+				break;
+			}
 		}
 		
 		return hasHi && hasM && hasLo;
 	}
 
-	private File baseDir;
-	private File boardHiFile;
-	private File boardMFile;
-	private File boardLoFile;
-	private File backgroundImageFile;
-	private File backgroundAltImageFile;
-	private File cornerTopLeftImageFile;
-	private File borderLeftImageFile;
-	
-	private Image boardHiImage;
-	private Image boardMImage;
-	private Image boardLoImage;
-	private Image backgroundImage;
+	public abstract Image getBoardM(Display display) throws FileNotFoundException;
 
-	private Image backgroundAltImage;
+	public abstract Image getBoardHi(Display display) throws FileNotFoundException;
 
-	private Image cornerTopLeftImage;
+	public abstract Image getBoardLo(Display display) throws FileNotFoundException;
 
-	private Image borderLeftImage;
+	public abstract Image getBackground(Display display) throws FileNotFoundException;
 
+	public abstract Image getBackgroundAlt(Display display) throws FileNotFoundException;
 
+	public abstract Image getCornerTopLeft(Display display) throws FileNotFoundException;
 
-	public Theme(String path) throws URISyntaxException {
-		this(new File(Theme.class.getResource(path).toURI()));
-	}
+	public abstract Image getBorderLeft(Display display) throws FileNotFoundException;
 
-	public Theme(File c) {
-		this.baseDir = c;
-		resolveImageFiles();
-	}
-
-	private void resolveImageFiles() {
-		this.boardHiFile = new File(baseDir, BOARD_HI);
-		this.boardMFile = new File(baseDir, BOARD_M);
-		this.boardLoFile = new File(baseDir, BOARD_LO);
-		this.backgroundImageFile = new File(baseDir, BACKGROUND);
-		this.backgroundAltImageFile = new File(baseDir, BACKGROUND_ALT);
-		this.cornerTopLeftImageFile = new File(baseDir, CORNER_TOP_LEFT);
-		this.borderLeftImageFile = new File(baseDir, BORDER_LEFT);
-		
-		assertFilesExist();
-	}
-	
-	private void assertFilesExist() {
-		assertFileExists(this.boardHiFile);
-		assertFileExists(this.boardMFile);
-		assertFileExists(this.boardLoFile);
-		assertFileExists(this.backgroundImageFile);
-		assertFileExists(this.backgroundAltImageFile);
-		assertFileExists(this.cornerTopLeftImageFile);
-		assertFileExists(this.borderLeftImageFile);
-	}
-
-	private void assertFileExists(File f) {
-		if (f == null || !f.exists() || f.isDirectory()) {
-			throw new IllegalStateException("Missing theme file.");
-		}
-	}
-
-	/**
-	 * the hi-res version of the dart board
-	 */
-	public synchronized Image getBoardHi(Device d) throws FileNotFoundException {
-		if (this.boardHiImage == null) {
-			this.boardHiImage = new Image(d, new FileInputStream(boardHiFile));
-		}
-		
-		return this.boardHiImage;
-	}
-	
-	/**
-	 * the med-res version of the dart board
-	 */
-	public synchronized Image getBoardM(Device d) throws FileNotFoundException {
-		if (this.boardMImage == null) {
-			this.boardMImage = new Image(d, new FileInputStream(boardMFile));
-		}
-		
-		return this.boardMImage;
-	}
-	
-	/**
-	 * the lo-res version of the dart board
-	 */
-	public synchronized Image getBoardLo(Device d) throws FileNotFoundException {
-		if (this.boardLoImage == null) {
-			this.boardLoImage = new Image(d, new FileInputStream(boardLoFile));
-		}
-		
-		return this.boardLoImage;
-	}
-	
-	public synchronized Image getBackground(Device d) throws FileNotFoundException {
-		if (this.backgroundImage == null) {
-			this.backgroundImage = new Image(d, new FileInputStream(backgroundImageFile));
-		}
-		
-		return this.backgroundImage;
-	}
-	
-	public synchronized Image getBackgroundAlt(Device d) throws FileNotFoundException {
-		if (this.backgroundAltImage == null) {
-			this.backgroundAltImage = new Image(d, new FileInputStream(backgroundAltImageFile));
-		}
-		
-		return this.backgroundAltImage;
-	}
-	
-	public synchronized Image getCornerTopLeft(Device d) throws FileNotFoundException {
-		if (this.cornerTopLeftImage == null) {
-			this.cornerTopLeftImage = new Image(d, new FileInputStream(cornerTopLeftImageFile));
-		}
-		
-		return this.cornerTopLeftImage;
-	}
-	
-	public synchronized Image getBorderLeft(Device d) throws FileNotFoundException {
-		if (this.borderLeftImage == null) {
-			this.borderLeftImage = new Image(d, new FileInputStream(borderLeftImageFile));
-		}
-		
-		return this.borderLeftImage;
-	}
-
-	public File getBoardHiFile() {
-		return checkAndReturnExistingFile(this.boardHiFile);
-	}
-
-	public File getBoardMFile() {
-		return checkAndReturnExistingFile(boardMFile);
-	}
-
-	public File getBoardLoFile() {
-		return checkAndReturnExistingFile(boardLoFile);
-	}
-	
-	private File checkAndReturnExistingFile(File f) {
-		if (f != null && f.exists() && !f.isDirectory()) {
-			return f;
-		}
-		return null;
-	}
 	
 }

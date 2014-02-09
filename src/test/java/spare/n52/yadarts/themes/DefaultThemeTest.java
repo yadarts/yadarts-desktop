@@ -16,18 +16,13 @@
  */
 package spare.n52.yadarts.themes;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 public class DefaultThemeTest {
 
 	@Test
 	public void testDefaultThemeLoading() {
-		Theme t = Theme.getDefault();
-		
-		Assert.assertNotNull(t.getBoardHiFile());
-		Assert.assertNotNull(t.getBoardMFile());
-		Assert.assertNotNull(t.getBoardLoFile());
+		Theme.getDefault();
 	}
 	
 }
