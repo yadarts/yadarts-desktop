@@ -26,7 +26,6 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
-
 import org.eclipse.swt.graphics.Device;
 import org.eclipse.swt.graphics.Image;
 import org.slf4j.Logger;
@@ -39,11 +38,17 @@ import org.slf4j.LoggerFactory;
 public class Theme {
 	
 	private static final Logger logger = LoggerFactory.getLogger(Theme.class);
-	protected static final String BOARD_HI = "board-hi.png";
-	protected static final String BOARD_M = "board-m.png";
-	protected static final String BOARD_LO = "board-lo.png";
+	
+	private static final String BOARD_HI = "board-hi.jpg";
+	private static final String BOARD_M = "board-m.jpg";
+	private static final String BOARD_LO = "board-lo.jpg";
 	private static final String BASE_DIR = "/themes";
 	private static final String DEFAULT_THEME = "plain";
+	private static final String BACKGROUND = "background.jpg";
+	private static final String BACKGROUND_ALT = "background_alt.jpg";
+	private static final String CORNER_TOP_LEFT = "corner_topleft.jpg";
+	private static final String BORDER_LEFT = "border_left.jpg";
+	
 	private static Theme defaultTheme;
 	private static Map<String, Theme> availableThemes = new HashMap<>();
 	private static Theme currentTheme;
@@ -110,7 +115,12 @@ public class Theme {
 			});
 			
 			if (contents.length == 3) {
-				availableThemes.put(c.getName(), new Theme(c));
+				try {
+					availableThemes.put(c.getName(), new Theme(c));
+				}
+				catch (IllegalStateException e) {
+					logger.warn("Could not instantiate theme {}: {}", c.getName(), e.getMessage());
+				}
 			}
 		}
 	}
@@ -141,9 +151,23 @@ public class Theme {
 	private File boardHiFile;
 	private File boardMFile;
 	private File boardLoFile;
+	private File backgroundImageFile;
+	private File backgroundAltImageFile;
+	private File cornerTopLeftImageFile;
+	private File borderLeftImageFile;
+	
 	private Image boardHiImage;
 	private Image boardMImage;
 	private Image boardLoImage;
+	private Image backgroundImage;
+
+	private Image backgroundAltImage;
+
+	private Image cornerTopLeftImage;
+
+	private Image borderLeftImage;
+
+
 
 	public Theme(String path) throws URISyntaxException {
 		this(new File(Theme.class.getResource(path).toURI()));
@@ -158,8 +182,30 @@ public class Theme {
 		this.boardHiFile = new File(baseDir, BOARD_HI);
 		this.boardMFile = new File(baseDir, BOARD_M);
 		this.boardLoFile = new File(baseDir, BOARD_LO);
+		this.backgroundImageFile = new File(baseDir, BACKGROUND);
+		this.backgroundAltImageFile = new File(baseDir, BACKGROUND_ALT);
+		this.cornerTopLeftImageFile = new File(baseDir, CORNER_TOP_LEFT);
+		this.borderLeftImageFile = new File(baseDir, BORDER_LEFT);
+		
+		assertFilesExist();
 	}
 	
+	private void assertFilesExist() {
+		assertFileExists(this.boardHiFile);
+		assertFileExists(this.boardMFile);
+		assertFileExists(this.boardLoFile);
+		assertFileExists(this.backgroundImageFile);
+		assertFileExists(this.backgroundAltImageFile);
+		assertFileExists(this.cornerTopLeftImageFile);
+		assertFileExists(this.borderLeftImageFile);
+	}
+
+	private void assertFileExists(File f) {
+		if (f == null || !f.exists() || f.isDirectory()) {
+			throw new IllegalStateException("Missing theme file.");
+		}
+	}
+
 	/**
 	 * the hi-res version of the dart board
 	 */
@@ -191,6 +237,38 @@ public class Theme {
 		}
 		
 		return this.boardLoImage;
+	}
+	
+	public synchronized Image getBackground(Device d) throws FileNotFoundException {
+		if (this.backgroundImage == null) {
+			this.backgroundImage = new Image(d, new FileInputStream(backgroundImageFile));
+		}
+		
+		return this.backgroundImage;
+	}
+	
+	public synchronized Image getBackgroundAlt(Device d) throws FileNotFoundException {
+		if (this.backgroundAltImage == null) {
+			this.backgroundAltImage = new Image(d, new FileInputStream(backgroundAltImageFile));
+		}
+		
+		return this.backgroundAltImage;
+	}
+	
+	public synchronized Image getCornerTopLeft(Device d) throws FileNotFoundException {
+		if (this.cornerTopLeftImage == null) {
+			this.cornerTopLeftImage = new Image(d, new FileInputStream(cornerTopLeftImageFile));
+		}
+		
+		return this.cornerTopLeftImage;
+	}
+	
+	public synchronized Image getBorderLeft(Device d) throws FileNotFoundException {
+		if (this.borderLeftImage == null) {
+			this.borderLeftImage = new Image(d, new FileInputStream(borderLeftImageFile));
+		}
+		
+		return this.borderLeftImage;
 	}
 
 	public File getBoardHiFile() {

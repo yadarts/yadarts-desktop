@@ -45,6 +45,7 @@ public class BoardView extends Composite {
 	private Image imageHi;
 	private Image imageLo;
 	private Label theBoard;
+	private Image background;
 
 	public BoardView(final Composite parent, int style) {
 		super(parent, style);
@@ -54,21 +55,15 @@ public class BoardView extends Composite {
 			imageM = Theme.getCurrentTheme().getBoardM(getDisplay());
 			imageHi = Theme.getCurrentTheme().getBoardHi(getDisplay());
 			imageLo = Theme.getCurrentTheme().getBoardLo(getDisplay());
+			background = Theme.getCurrentTheme().getBackground(getDisplay());
 		} catch (FileNotFoundException e1) {
 			logger.warn(e1.getMessage(), e1);
-			try {
-				imageM = Theme.getDefault().getBoardM(getDisplay());
-				imageHi = Theme.getDefault().getBoardHi(getDisplay());
-				imageLo = Theme.getDefault().getBoardLo(getDisplay());
-			} catch (FileNotFoundException e2) {
-				logger.warn("The default theme is not available! {}", e2.getMessage());
-				throw new IllegalStateException("The default theme is not available");
-			}
-			
+			throw new IllegalStateException("The theme is not correctly configured");
 		}
 		
 		theBoard = new Label(this, SWT.NONE);
 		theBoard.setImage(imageM);
+		theBoard.setBackgroundImage(background);
 		theBoard.setAlignment(SWT.CENTER);
 
 		theBoard.addControlListener(new ControlAdapter() {

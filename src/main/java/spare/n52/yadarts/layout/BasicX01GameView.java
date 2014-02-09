@@ -16,6 +16,7 @@
  */
 package spare.n52.yadarts.layout;
 
+import java.io.FileNotFoundException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +24,7 @@ import java.util.Map;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
@@ -31,6 +33,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,6 +49,8 @@ import spare.n52.yadarts.games.Score;
 import spare.n52.yadarts.games.x01.GenericX01Game;
 import spare.n52.yadarts.i18n.I18N;
 import spare.n52.yadarts.layout.board.BoardView;
+import spare.n52.yadarts.themes.BorderedControlContainer;
+import spare.n52.yadarts.themes.Theme;
 
 public class BasicX01GameView extends Composite implements
 		GameStatusUpdateListener {
@@ -67,6 +72,7 @@ public class BasicX01GameView extends Composite implements
 	private PlayerTableView playerTable;
 	private int targetScore;
 	private Label roundLabel;
+	private Image background;
 	
 	public BasicX01GameView(Composite parent, int style, int targetScore) {
 		this(parent, style, thePlayers, targetScore);
@@ -75,14 +81,24 @@ public class BasicX01GameView extends Composite implements
 	public BasicX01GameView(Composite parent, int style, List<Player> playerList, int targetScore) {
 		super(parent, style);
 		
+		try {
+			this.background = Theme.getCurrentTheme().getBackground(getDisplay());
+		} catch (FileNotFoundException e1) {
+			logger.warn(e1.getMessage(), e1);
+			throw new IllegalStateException("The theme does not provide a valid background resource");
+		}
+		
+		this.setBackgroundImage(background);
+		
 		this.players = playerList;
 		this.targetScore = targetScore;
 		
 		FormLayout formLayout = new FormLayout();
-		formLayout.marginHeight = 5;
-		formLayout.marginWidth = 5;
-		formLayout.spacing = 5;
+		formLayout.marginHeight = 0;
+		formLayout.marginWidth = 0;
+		formLayout.spacing = 0;
 		this.setLayout(formLayout);
+
 
 		initFirstRow(this);
 
@@ -122,7 +138,30 @@ public class BasicX01GameView extends Composite implements
 
 
 	private void createRightBar(Composite container) {
-		rightBar = new Composite(container, SWT.BORDER);
+		rightBar = new BorderedControlContainer(container, SWT.NONE) {
+			
+			@Override
+			protected Control createContents(Composite parent) {
+				Composite rightBarContainer = new Composite(parent, SWT.NONE);
+				rightBarContainer.setBackgroundMode(SWT.INHERIT_FORCE);
+				
+				RowLayout leftBarLayout = new RowLayout(SWT.VERTICAL);
+				leftBarLayout.spacing = 5;
+				rightBarContainer.setLayout(leftBarLayout);
+				
+				new Label(rightBarContainer, SWT.UNDERLINE_SINGLE).setText(I18N.getString("currentRound").concat(":"));
+				roundLabel = new Label(rightBarContainer, SWT.NONE);
+				roundLabel.setText("1");
+				roundLabel.setFont(new Font(getDisplay(), new FontData("Arial", 16,
+						SWT.NONE)));
+
+				new Label(rightBarContainer, SWT.UNDERLINE_SINGLE).setText(I18N.getString("turnThrows").concat(":"));
+				turnSummary = new Label(rightBarContainer, SWT.NONE);
+				turnSummary.setFont(new Font(getDisplay(), new FontData("Arial", 16,
+						SWT.NONE)));
+				return rightBarContainer;
+			}
+		};
 		FormData rightBarData = new FormData();
 		rightBarData.top = new FormAttachment(0);
 		rightBarData.left = new FormAttachment(theBoard);
@@ -130,50 +169,56 @@ public class BasicX01GameView extends Composite implements
 		rightBarData.bottom = new FormAttachment(80);
 		rightBar.setLayoutData(rightBarData);
 
-		RowLayout leftBarLayout = new RowLayout(SWT.VERTICAL);
-		leftBarLayout.spacing = 5;
-		rightBar.setLayout(leftBarLayout);
-		
-		new Label(rightBar, SWT.UNDERLINE_SINGLE).setText(I18N.getString("currentRound").concat(":"));
-		roundLabel = new Label(rightBar, SWT.NONE);
-		roundLabel.setText("1");
-		roundLabel.setFont(new Font(getDisplay(), new FontData("Arial", 16,
-				SWT.NONE)));
 
-		new Label(rightBar, SWT.UNDERLINE_SINGLE).setText(I18N.getString("turnThrows").concat(":"));
-		turnSummary = new Label(rightBar, SWT.NONE);
-		turnSummary.setFont(new Font(getDisplay(), new FontData("Arial", 16,
-				SWT.NONE)));
 	}
 
 	private void createLeftBar(Composite container) {
-		leftBar = new Composite(container, SWT.BORDER);
+		leftBar = new BorderedControlContainer(container, SWT.NONE) {
+			
+			@Override
+			protected Control createContents(Composite parent) {
+				Composite leftBarContainer = new Composite(parent, SWT.NONE);
+				leftBarContainer.setBackgroundMode(SWT.INHERIT_FORCE);
+				
+				GridLayout leftBarLayout = new GridLayout(1, true);
+				leftBarContainer.setLayout(leftBarLayout);
+				
+				new Label(leftBarContainer, SWT.UNDERLINE_SINGLE).setText(I18N.getString("theTurnIsOn").concat(":"));
+				playerTable = new PlayerTableView(leftBarContainer, SWT.NONE, players, targetScore);
+				GridData data = new GridData(SWT.FILL, SWT.FILL, true, false);
+				playerTable.setLayoutData(data);
+
+				new Label(leftBarContainer, SWT.UNDERLINE_SINGLE).setText(I18N.getString("remainingScore").concat(":"));
+				currentScore = new Label(leftBarContainer, SWT.NONE);
+				currentScore.setFont(new Font(getDisplay(), new FontData("Arial", 24,
+						SWT.NONE)));
+				currentScore.setText("301");
+				return leftBarContainer;
+			}
+		};
 		FormData leftBarData = new FormData();
 		leftBarData.top = new FormAttachment(0);
 		leftBarData.left = new FormAttachment(0);
 		leftBarData.right = new FormAttachment(20);
 		leftBarData.bottom = new FormAttachment(80);
 		leftBar.setLayoutData(leftBarData);
-
-		GridLayout leftBarLayout = new GridLayout(1, true);
-		leftBar.setLayout(leftBarLayout);
-		
-		new Label(leftBar, SWT.UNDERLINE_SINGLE).setText(I18N.getString("theTurnIsOn").concat(":"));
-		playerTable = new PlayerTableView(leftBar, SWT.NONE, players, targetScore);
-		GridData data = new GridData(SWT.FILL, SWT.FILL, true, false);
-		playerTable.setLayoutData(data);
-
-		new Label(leftBar, SWT.UNDERLINE_SINGLE).setText(I18N.getString("remainingScore").concat(":"));
-		currentScore = new Label(leftBar, SWT.NONE);
-		currentScore.setFont(new Font(getDisplay(), new FontData("Arial", 24,
-				SWT.NONE)));
-		currentScore.setText("301");
-
 	}
 
 	private void initSecondRow(Composite container) {
-		bottomBar = new Composite(container, SWT.BORDER);
-		bottomBar.setLayout(new FillLayout());
+		bottomBar = new BorderedControlContainer(container, SWT.NONE) {
+			
+			@Override
+			protected Control createContents(Composite parent) {
+				Composite bottomBarContainer = new Composite(parent, SWT.NONE);
+				bottomBarContainer.setLayout(new FillLayout());
+				bottomBarContainer.setBackgroundMode(SWT.INHERIT_FORCE);
+				statusBar = new Label(bottomBarContainer, SWT.NONE);
+				statusBar.setFont(new Font(getDisplay(), new FontData("Arial", 14,
+						SWT.NONE)));
+				return bottomBarContainer;
+			}
+		};
+		
 		FormData leftBarData = new FormData();
 		leftBarData.top = new FormAttachment(leftBar);
 		leftBarData.left = new FormAttachment(0);
@@ -181,9 +226,6 @@ public class BasicX01GameView extends Composite implements
 		leftBarData.bottom = new FormAttachment(100);
 		bottomBar.setLayoutData(leftBarData);
 
-		statusBar = new Label(bottomBar, SWT.NONE);
-		statusBar.setFont(new Font(getDisplay(), new FontData("Arial", 14,
-				SWT.NONE)));
 	}
 
 	private void updateLabel(final Label theLabel, final String value) {

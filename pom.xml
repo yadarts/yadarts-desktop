@@ -7,6 +7,8 @@
 	<version>0.1.0-SNAPSHOT</version>
 	<artifactId>yadarts-desktop</artifactId>
 	<packaging>jar</packaging>
+	
+	<inceptionYear>2014</inceptionYear>
 
 	<properties>
 		<swt.version>4.3</swt.version>
