@@ -31,7 +31,7 @@ Don't get discouraged! We estimate that the response time from the maintainers i
 
 # Bug triage
 
-You can help report bugs by filing them here: <https://github.com/yadarts/yadarts-destkop/issues>
+You can help report bugs by filing them here: <https://github.com/yadarts/yadarts-desktop/issues>
 
 * Don't forget to check the existing ones first
 * Look at existing bugs and help us understand if the bug is reproducible. Is it reproducible in other environments (OS, JVM, application servers)? What are the steps to reproduce? 
