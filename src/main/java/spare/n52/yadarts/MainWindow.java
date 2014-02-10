@@ -17,6 +17,8 @@
 package spare.n52.yadarts;
 
 
+import java.io.FileNotFoundException;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
@@ -34,6 +36,7 @@ import org.slf4j.LoggerFactory;
 import spare.n52.yadarts.config.Configuration;
 import spare.n52.yadarts.i18n.I18N;
 import spare.n52.yadarts.layout.BasicX01GameView;
+import spare.n52.yadarts.themes.Theme;
 
 public class MainWindow {
 
@@ -91,6 +94,12 @@ public class MainWindow {
 	}
 
 	protected void initLayout() {
+		try {
+			shell.setBackgroundImage(Theme.getCurrentTheme().getBackground(shell.getDisplay()));
+		} catch (FileNotFoundException e1) {
+			logger.warn(e1.getMessage(), e1);
+		}
+		
 		new BasicX01GameView(shell, SWT.NONE, 301);
 		
 		FillLayout layout = new FillLayout();

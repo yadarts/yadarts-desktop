@@ -50,7 +50,10 @@ public class PlayerTableView extends Composite {
 
 		this.setLayout(new GridLayout());
 		this.setBackgroundMode(SWT.INHERIT_FORCE);
-		this.setBackground(parent.getBackground());
+		
+		if (parent.getBackgroundImage() != null) {
+			this.setBackgroundImage(parent.getBackgroundImage());
+		}
 
 		this.defaultFont = new Font(getDisplay(), "Arial", 14, SWT.NONE);
 		this.highlightFont = new Font(getDisplay(), "Arial", 14, SWT.BOLD);
@@ -62,7 +65,7 @@ public class PlayerTableView extends Composite {
 	private void initTable(String targetScore) {
         table = new Table(this, SWT.NO_FOCUS | SWT.HIDE_SELECTION );
         table.setBackgroundMode(SWT.INHERIT_FORCE);
-        table.setBackground(this.getBackground());
+        table.setBackgroundImage(this.getBackgroundImage());
         table.setLinesVisible(false);
         table.setHeaderVisible(false);
         table.addSelectionListener(new SelectionAdapter() {
@@ -107,6 +110,15 @@ public class PlayerTableView extends Composite {
 		table.getColumn(1).pack();
 		table.getColumn(2).pack();		
 		table.pack();
+		
+		/*
+		 * reset the font to default
+		 */
+		for (int i = 1; i < players.size(); i++) {
+			TableItem item = table.getItem(i+1);
+			item.setFont(defaultFont);
+			
+		}
 	}
 
 	public void setCurrentPlayer(final Player p, final Score remaining) {

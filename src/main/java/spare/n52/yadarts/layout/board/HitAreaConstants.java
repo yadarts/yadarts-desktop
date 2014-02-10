@@ -23,6 +23,25 @@ public class HitAreaConstants {
 
 	private static Map<Integer, Integer> angleMap = new HashMap<>();
 
+	public static final Deviation[] OUTER_RING_DEVIATION = new Deviation[] {
+		new Deviation(3, 1.18), new Deviation(1, 0.85)
+	};
+	public static final Deviation[] INNER_RING_DEVIATION = new Deviation[] {
+		new Deviation(1, 1.35), new Deviation(-3, 0.5)
+	};
+	public static final Deviation[] DOUBLE_DEVIATION = new Deviation[] {
+		new Deviation(4, 0.995), new Deviation(-5, 0.99)
+	};
+	public static final Deviation[] TRIPLE_DEVIATION = new Deviation[] {
+		new Deviation(-4, 1.025), new Deviation(3, 0.978)
+	};
+	public static final Deviation[] BULLSEYE_DEVIATION = new Deviation[] {
+		new Deviation(180, 1.2), new Deviation(67, 1.1)
+	};
+	public static final Deviation[] DOUBLE_BULLSEYE_DEVIATION = new Deviation[] {
+		new Deviation(140, 1.4), new Deviation(-67, 1.6)
+	};
+	
 	static {
 		angleMap.put(6, 0);
 		angleMap.put(13, 1*18);

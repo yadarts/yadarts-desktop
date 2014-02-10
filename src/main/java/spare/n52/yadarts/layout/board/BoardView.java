@@ -16,13 +16,21 @@
  */
 package spare.n52.yadarts.layout.board;
 
+import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTException;
 import org.eclipse.swt.events.ControlAdapter;
 import org.eclipse.swt.events.ControlEvent;
+import org.eclipse.swt.events.PaintEvent;
+import org.eclipse.swt.events.PaintListener;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -31,33 +39,45 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import spare.n52.yadarts.entity.PointEvent;
+import spare.n52.yadarts.themes.Theme;
 
 public class BoardView extends Composite {
 	
 	private static final Logger logger = LoggerFactory.getLogger(BoardView.class);
 	private static final int MAX_M_SIZE = 1000;
 	private static final int MAX_LO_SIZE = 750;
+	private final Color dartColor = new Color(getDisplay(), new RGB(255, 0, 255));
 	
 	private Image imageM;
 	private Image imageHi;
 	private Image imageLo;
 	private Label theBoard;
+	private Image background;
+	private List<DynamicPolarCoordinate> arrows = new ArrayList<>();
+	private Point currentCenter;
+	private int currentRadius;
+	private int currentDartSize;
 
 	public BoardView(final Composite parent, int style) {
 		super(parent, style);
 		this.setLayout(new FillLayout());
 
-		imageM = new Image(this.getDisplay(), getClass()
-				.getResourceAsStream("/images/board-m.png"));
+		try {
+			imageM = Theme.getCurrentTheme().getBoardM(getDisplay());
+			imageHi = Theme.getCurrentTheme().getBoardHi(getDisplay());
+			imageLo = Theme.getCurrentTheme().getBoardLo(getDisplay());
+			background = Theme.getCurrentTheme().getBackground(getDisplay());
+		} catch (FileNotFoundException e1) {
+			logger.warn(e1.getMessage(), e1);
+			throw new IllegalStateException("The theme is not correctly configured");
+		}
 		
-		imageHi = new Image(this.getDisplay(), getClass()
-				.getResourceAsStream("/images/board-hi.png"));
-		imageLo = new Image(this.getDisplay(), getClass()
-				.getResourceAsStream("/images/board-lo.png"));
-		
+
 		theBoard = new Label(this, SWT.NONE);
+		theBoard.setBackgroundImage(background);
 		theBoard.setImage(imageM);
 		theBoard.setAlignment(SWT.CENTER);
+		
 
 		theBoard.addControlListener(new ControlAdapter() {
 
@@ -76,6 +96,20 @@ public class BoardView extends Composite {
 			}
 
 		});
+		
+		theBoard.addPaintListener(new PaintListener() {
+			
+			@Override
+			public void paintControl(PaintEvent e) {
+				logger.debug("current center is {}", currentCenter);
+				
+				for (DynamicPolarCoordinate c : arrows) {
+					drawDartAt(c.calculatePoint(currentCenter, currentRadius), e.gc);					
+				}
+				
+			}
+		});
+		
 	}
 	
 	private Image resize(int width, int height) {
@@ -104,42 +138,120 @@ public class BoardView extends Composite {
 		
 		gc.drawImage(image, 0, 0, image.getBounds().width,
 				image.getBounds().height, 0, 0, width, height);
+		
+		updateScaleRatio(scaled);
+		
 		gc.dispose();
 		
 		return scaled;
 	}
 
+	private void updateScaleRatio(Image image) {
+		this.currentCenter = new Point(theBoard.getBounds().width / 2, theBoard.getBounds().height / 2);
+		this.currentRadius = image.getBounds().width / 2;
+		this.currentDartSize = this.currentRadius / 12;
+	}
+
 	public void removeLastHit() {
-		// TODO Auto-generated method stub
-		
+		getDisplay().asyncExec(new Runnable() {
+			@Override
+			public void run() {
+				if (arrows != null && arrows.size() > 0) {
+					arrows.remove(arrows.size()-1);
+					theBoard.redraw();
+				}				
+			}
+		});
 	}
 
 	public void onPointEvent(final PointEvent event) {
 		getDisplay().asyncExec(new Runnable() {
 			@Override
 			public void run() {
-				Rectangle currentBounds = theBoard.getBounds();
-				Point center = new Point(currentBounds.x + currentBounds.width / 2,
-						currentBounds.y + currentBounds.height / 2);
-
-				processNumberHit(event.getBaseNumber(), event.getMultiplier(),
-						event.isOuterRing(), center, currentBounds.height / 2);				
+				processNumberHit(event);				
 			}
 		});
 	}
 
 
-	private void processNumberHit(int baseNumber, int multiplier,
-			boolean outerRing, Point center, int radius) {
-		DynamicPolarCoordinate coordinate = new DynamicPolarCoordinate(baseNumber, multiplier, outerRing);
-		
-		logger.info("current center is {}", center);
-		
-		drawDartAt(coordinate.calculatePoint(center, radius));
+	private void processNumberHit(PointEvent event) {
+		DynamicPolarCoordinate coordinate = new DynamicPolarCoordinate(event);
+		coordinate.setDeviation(calculateDeviation(event));
+		this.arrows.add(coordinate);
+		theBoard.redraw();
 	}
 
-	private void drawDartAt(Point point) {
-		logger.info("Dart would draw at {}", point);
+	private Deviation calculateDeviation(PointEvent event) {
+		if (this.arrows.size() == 0) {
+			return new Deviation();
+		}
+		
+		List<DynamicPolarCoordinate> inSameField = new ArrayList<>(2);
+		for (DynamicPolarCoordinate c : this.arrows) {
+			if (sameField(event, c.getEvent())) {
+				inSameField.add(c);
+			}
+		}
+		
+		if (inSameField.isEmpty()) {
+			return new Deviation();
+		}
+		else {
+			return calculateFieldDependentDeviation(event, inSameField);
+		}
+	}
+
+	private Deviation calculateFieldDependentDeviation(PointEvent event,
+			List<DynamicPolarCoordinate> inSameField) {
+		
+		if (event.getMultiplier() == 1) {
+			if (event.getBaseNumber() == 25) {
+				return HitAreaConstants.BULLSEYE_DEVIATION[inSameField.size()-1]; 
+			}
+			if (event.isOuterRing()) {
+				return HitAreaConstants.OUTER_RING_DEVIATION[inSameField.size()-1];
+			}
+			else {
+				return HitAreaConstants.INNER_RING_DEVIATION[inSameField.size()-1];
+			}
+		}
+		else if (event.getMultiplier() == 2) {
+			if (event.getBaseNumber() == 25) {
+				return HitAreaConstants.DOUBLE_BULLSEYE_DEVIATION[inSameField.size()-1]; 
+			}
+			return HitAreaConstants.DOUBLE_DEVIATION[inSameField.size()-1];
+		}
+		else if (event.getMultiplier() == 3) {
+			return HitAreaConstants.TRIPLE_DEVIATION[inSameField.size()-1];
+		}
+		
+		return new Deviation();
+	}
+
+	private boolean sameField(PointEvent a, PointEvent b) {
+		return a.getBaseNumber() == b.getBaseNumber()
+				&& a.getMultiplier() == b.getMultiplier()
+				&& a.isOuterRing() == b.isOuterRing();
+	}
+
+	private void drawDartAt(Point point, GC gc) {
+		gc.setForeground(dartColor);
+		gc.setLineWidth(3);
+		
+		gc.drawLine(point.x-currentDartSize, point.y-currentDartSize, point.x+currentDartSize, point.y+currentDartSize);
+		gc.drawLine(point.x-currentDartSize, point.y+currentDartSize, point.x+currentDartSize, point.y-currentDartSize);
+	}
+
+	public void removeAllArrows() {
+		getDisplay().asyncExec(new Runnable() {
+			
+			@Override
+			public void run() {
+				arrows.clear();
+				theBoard.redraw();
+			}
+		});
+		
 	}
 
 

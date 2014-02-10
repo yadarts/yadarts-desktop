@@ -3,12 +3,8 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<parent>
-		<groupId>spare.n52.yadarts</groupId>
-		<artifactId>yadarts</artifactId>
-		<version>0.1.0-SNAPSHOT</version>
-	</parent>
-
+	<groupId>spare.n52.yadarts</groupId>
+	<version>0.1.0-SNAPSHOT</version>
 	<artifactId>yadarts-desktop</artifactId>
 	<packaging>jar</packaging>
 	
@@ -181,6 +177,7 @@
 			<groupId>${project.groupId}</groupId>
 			<artifactId>yadarts-dummy-board</artifactId>
 		</dependency>
+		
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
