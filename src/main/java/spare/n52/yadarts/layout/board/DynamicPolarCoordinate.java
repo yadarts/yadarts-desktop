@@ -20,6 +20,12 @@ import org.eclipse.swt.graphics.Point;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import spare.n52.yadarts.entity.PointEvent;
+
+/**
+ * Polar coordinates are used to calculate the points
+ * on the board where a dart should be drawn.
+ */
 public class DynamicPolarCoordinate {
 	
 	private static final Logger logger = LoggerFactory.getLogger(DynamicPolarCoordinate.class);
@@ -28,10 +34,20 @@ public class DynamicPolarCoordinate {
 	private int multiplier;
 	private boolean outerRing;
 
+	private Deviation deviation;
+
+	private PointEvent event;
+
 	public DynamicPolarCoordinate(int base, int multi, boolean outer) {
 		this.baseNumber = base;
 		this.multiplier = multi;
 		this.outerRing = outer;
+	}
+
+	public DynamicPolarCoordinate(PointEvent event) {
+		this(event.getBaseNumber(), event.getMultiplier(),
+						event.isOuterRing());
+		this.event = event;
 	}
 
 	/**
@@ -55,17 +71,17 @@ public class DynamicPolarCoordinate {
 		double targetDistance;
 		switch (multiplier) {
 		case 3:
-			targetDistance = (radius * 0.4);
+			targetDistance = radius * 0.5;
 			break;
 		case 2:
-			targetDistance = (radius * 0.78);
+			targetDistance = radius * 0.82;
 			break;
 		default:
 			if (outerRing) {
-				targetDistance = (radius * 0.6);
+				targetDistance = radius * 0.65;
 			}
 			else {
-				targetDistance = (radius * 0.2);
+				targetDistance = radius * 0.35;
 			}
 			break;
 		}
@@ -75,11 +91,19 @@ public class DynamicPolarCoordinate {
 		 */
 		if (baseNumber == 25) {
 			if (multiplier == 2) {
-				targetDistance = 0;
+				targetDistance = radius * 0.01;
 			}
 			else {
 				targetDistance = radius * 0.05;
 			}
+		}
+		
+		/*
+		 * apply deviation
+		 */
+		if (deviation != null) {
+			targetDistance = targetDistance * deviation.getDistanceFactor();
+			angle += deviation.getAngleDelta();	
 		}
 		
 		double deltaX = targetDistance * Math.cos(Math.toRadians(angle));
@@ -92,5 +116,18 @@ public class DynamicPolarCoordinate {
 		
 		return new Point((int) x, (int) y);
 	}
+
+	public void setDeviation(Deviation d) {
+		this.deviation = d;
+	}
+
+	public Deviation getDeviation() {
+		return deviation;
+	}
+
+	public PointEvent getEvent() {
+		return event;
+	}
+	
 	
 }
