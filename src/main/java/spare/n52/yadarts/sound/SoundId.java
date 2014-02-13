@@ -1,0 +1,57 @@
+package spare.n52.yadarts.sound;
+
+public enum SoundId {
+	
+	Triple,Double,Single,BullsEye,y1,y2,y3,y4,y5,y6,y7,y8,y9,y10,y11,y12,y13,y14,y15,y16,y17,y18,y19,y20,y25,
+	Bust,Missed,RemoveDarts, Hit, Praise, BounceOut, PleasePressNextPlayer;
+	
+	static SoundId get(int i) {
+		switch (i) {
+		case 1:
+			return y1;
+		case 2:
+			return y2;
+		case 3:
+			return y3;
+		case 4:
+			return y4;
+		case 5:
+			return y5;
+		case 6:
+			return y6;
+		case 7:
+			return y7;
+		case 8:
+			return y8;
+		case 9:
+			return y9;
+		case 10:
+			return y10;
+		case 11:
+			return y11;
+		case 12:
+			return y12;
+		case 13:
+			return y13;
+		case 14:
+			return y14;
+		case 15:
+			return y15;
+		case 16:
+			return y16;
+		case 17:
+			return y17;
+		case 18:
+			return y18;
+		case 19:
+			return y19;
+		case 20:
+			return y20;
+		case 25:
+			return BullsEye;
+		default:
+			return Hit;
+		}
+	}
+
+}
