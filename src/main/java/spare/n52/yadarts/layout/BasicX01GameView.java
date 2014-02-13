@@ -17,7 +17,6 @@
 package spare.n52.yadarts.layout;
 
 import java.io.FileNotFoundException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -43,17 +42,18 @@ import spare.n52.yadarts.EventEngine;
 import spare.n52.yadarts.InitializationException;
 import spare.n52.yadarts.entity.Player;
 import spare.n52.yadarts.entity.PointEvent;
-import spare.n52.yadarts.entity.impl.PlayerImpl;
 import spare.n52.yadarts.games.GameStatusUpdateListener;
 import spare.n52.yadarts.games.Score;
 import spare.n52.yadarts.games.x01.GenericX01Game;
 import spare.n52.yadarts.i18n.I18N;
 import spare.n52.yadarts.layout.board.BoardView;
+import spare.n52.yadarts.persistence.HighscorePersistence;
+import spare.n52.yadarts.persistence.PersistencyException;
 import spare.n52.yadarts.themes.BorderedControlContainer;
 import spare.n52.yadarts.themes.Theme;
 
-public class BasicX01GameView extends Composite implements
-		GameStatusUpdateListener {
+public abstract class BasicX01GameView implements
+		GameStatusUpdateListener, GameView {
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(BasicX01GameView.class);
@@ -62,9 +62,7 @@ public class BasicX01GameView extends Composite implements
 	private Label turnSummary;
 	private Composite leftBar;
 	private Composite rightBar;
-	private static List<Player> thePlayers = Arrays.asList(new Player[] {
-			new PlayerImpl("Jan"), new PlayerImpl("Benjamin"),
-			new PlayerImpl("Eike"), new PlayerImpl("Matthes") });
+
 	private Composite bottomBar;
 	private Label statusBar;
 	private GenericX01Game x01Game;
@@ -73,22 +71,21 @@ public class BasicX01GameView extends Composite implements
 	private int targetScore;
 	private Label roundLabel;
 	private Image background;
+	private Composite wrapper;
 	
-	public BasicX01GameView(Composite parent, int style, int targetScore) {
-		this(parent, style, thePlayers, targetScore);
-	}
-
-	public BasicX01GameView(Composite parent, int style, List<Player> playerList, int targetScore) {
-		super(parent, style);
+	
+	@Override
+	public void initialize(Composite parent, int style, List<Player> playerList, int targetScore) {
+		this.wrapper = new Composite(parent, style);
 		
 		try {
-			this.background = Theme.getCurrentTheme().getBackground(getDisplay());
+			this.background = Theme.getCurrentTheme().getBackground(wrapper.getDisplay());
 		} catch (FileNotFoundException e1) {
 			logger.warn(e1.getMessage(), e1);
 			throw new IllegalStateException("The theme does not provide a valid background resource");
 		}
 		
-		this.setBackgroundImage(background);
+		wrapper.setBackgroundImage(background);
 		
 		this.players = playerList;
 		this.targetScore = targetScore;
@@ -97,14 +94,14 @@ public class BasicX01GameView extends Composite implements
 		formLayout.marginHeight = 0;
 		formLayout.marginWidth = 0;
 		formLayout.spacing = 0;
-		this.setLayout(formLayout);
+		wrapper.setLayout(formLayout);
 
 
-		initFirstRow(this);
+		initFirstRow(wrapper);
 
-		initSecondRow(this);
+		initSecondRow(wrapper);
 
-		this.pack();
+		wrapper.pack();
 
 		try {
 			startGame();
@@ -116,7 +113,7 @@ public class BasicX01GameView extends Composite implements
 	private void startGame() throws InitializationException,
 			AlreadyRunningException {
 		EventEngine engine = EventEngine.instance();
-		x01Game = new GenericX01Game(players, 301);
+		x01Game = GenericX01Game.create(players, 301);
 		x01Game.registerGameListener(this);
 		engine.registerListener(x01Game);
 		engine.start();
@@ -229,7 +226,7 @@ public class BasicX01GameView extends Composite implements
 	}
 
 	private void updateLabel(final Label theLabel, final String value) {
-		getDisplay().asyncExec(new Runnable() {
+		wrapper.getDisplay().asyncExec(new Runnable() {
 			@Override
 			public void run() {
 				theLabel.setText(value);
@@ -262,7 +259,7 @@ public class BasicX01GameView extends Composite implements
 	}
 
 	private void processPointEvent(final String value) {
-		getDisplay().asyncExec(new Runnable() {
+		wrapper.getDisplay().asyncExec(new Runnable() {
 			@Override
 			public void run() {
 				String current = turnSummary.getText();
@@ -343,7 +340,16 @@ public class BasicX01GameView extends Composite implements
 		logger.info("The game has ended!");
 
 		for (Player player : playerScoreMap.keySet()) {
-			logger.info("{}: {}", player, playerScoreMap.get(player));
+			Score score = playerScoreMap.get(player);
+			logger.info("{}: {}", player, score);
+			
+			if (score.getTotalScore() == 0) {
+				try {
+					HighscorePersistence.Instance.instance().addHighscoreEntry(x01Game.getClass(), score);
+				} catch (PersistencyException e) {
+					logger.warn(e.getMessage(), e);
+				}
+			}
 		}
 
 		updateLabel(statusBar, String.format(I18N.getString("gameHasEnded"), winner.toString()));
