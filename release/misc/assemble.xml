@@ -29,5 +29,9 @@
 			<directory>themes</directory>
 			<outputDirectory>/themes</outputDirectory>
 		</fileSet>
+		<fileSet>
+			<directory>data</directory>
+			<outputDirectory>/data</outputDirectory>
+		</fileSet>
 	</fileSets>
 </assembly>

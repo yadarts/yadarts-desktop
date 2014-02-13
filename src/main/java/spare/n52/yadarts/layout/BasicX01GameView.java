@@ -49,6 +49,8 @@ import spare.n52.yadarts.games.Score;
 import spare.n52.yadarts.games.x01.GenericX01Game;
 import spare.n52.yadarts.i18n.I18N;
 import spare.n52.yadarts.layout.board.BoardView;
+import spare.n52.yadarts.persistence.HighscorePersistence;
+import spare.n52.yadarts.persistence.PersistencyException;
 import spare.n52.yadarts.themes.BorderedControlContainer;
 import spare.n52.yadarts.themes.Theme;
 
@@ -73,6 +75,7 @@ public class BasicX01GameView extends Composite implements
 	private int targetScore;
 	private Label roundLabel;
 	private Image background;
+	
 	
 	public BasicX01GameView(Composite parent, int style, int targetScore) {
 		this(parent, style, thePlayers, targetScore);
@@ -116,7 +119,7 @@ public class BasicX01GameView extends Composite implements
 	private void startGame() throws InitializationException,
 			AlreadyRunningException {
 		EventEngine engine = EventEngine.instance();
-		x01Game = new GenericX01Game(players, 301);
+		x01Game = GenericX01Game.create(players, 301);
 		x01Game.registerGameListener(this);
 		engine.registerListener(x01Game);
 		engine.start();
@@ -343,7 +346,16 @@ public class BasicX01GameView extends Composite implements
 		logger.info("The game has ended!");
 
 		for (Player player : playerScoreMap.keySet()) {
-			logger.info("{}: {}", player, playerScoreMap.get(player));
+			Score score = playerScoreMap.get(player);
+			logger.info("{}: {}", player, score);
+			
+			if (score.getTotalScore() == 0) {
+				try {
+					HighscorePersistence.Instance.instance().addHighscoreEntry(x01Game.getClass(), score);
+				} catch (PersistencyException e) {
+					logger.warn(e.getMessage(), e);
+				}
+			}
 		}
 
 		updateLabel(statusBar, String.format(I18N.getString("gameHasEnded"), winner.toString()));
