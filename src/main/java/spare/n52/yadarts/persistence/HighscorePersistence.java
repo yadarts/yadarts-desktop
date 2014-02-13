@@ -25,10 +25,29 @@ import org.slf4j.LoggerFactory;
 import spare.n52.yadarts.games.Game;
 import spare.n52.yadarts.games.Score;
 
+/**
+ * Interface for the highscore peristency mechanism
+ */
 public interface HighscorePersistence {
 
+	/**
+	 * add a {@link Score} to the highscore for a specific {@link Game}
+	 * class.
+	 * 
+	 * @param theGame the specific class
+	 * @param score the score
+	 * @throws PersistencyException
+	 */
 	public void addHighscoreEntry(Class<? extends Game> theGame, Score score) throws PersistencyException;
 
+	/**
+	 * get the list of highscore entries for a specific {@link Game}
+	 * class.
+	 * 
+	 * @param theGame the specific class
+	 * @return the ordered list of scores (low first)
+	 * @throws PersistencyException
+	 */
 	public List<Score> getHighscore(Class<? extends Game> theGame) throws PersistencyException;
 	
 	/**

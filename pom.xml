@@ -101,11 +101,11 @@
 				<artifactId>yadarts-dummy-board</artifactId>
 				<version>${project.version}</version>
 			</dependency>
-<!-- 			<dependency> -->
-<!-- 				<groupId>${project.groupId}</groupId> -->
-<!-- 				<artifactId>yadarts-usb</artifactId> -->
-<!-- 				<version>${project.version}</version> -->
-<!-- 			</dependency> -->
+			<dependency>
+				<groupId>${project.groupId}</groupId>
+				<artifactId>yadarts-usb</artifactId>
+				<version>${project.version}</version>
+			</dependency>
 			<dependency>
 				<groupId>org.slf4j</groupId>
 				<artifactId>slf4j-api</artifactId>
@@ -185,9 +185,13 @@
 			<groupId>${project.groupId}</groupId>
 			<artifactId>yadarts-runtime</artifactId>
 		</dependency>
+<!-- 		<dependency> -->
+<!-- 			<groupId>${project.groupId}</groupId> -->
+<!-- 			<artifactId>yadarts-dummy-board</artifactId> -->
+<!-- 		</dependency> -->
 		<dependency>
 			<groupId>${project.groupId}</groupId>
-			<artifactId>yadarts-dummy-board</artifactId>
+			<artifactId>yadarts-usb</artifactId>
 		</dependency>
 		
 		<dependency>

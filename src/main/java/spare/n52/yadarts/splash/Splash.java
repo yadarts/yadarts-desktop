@@ -93,7 +93,7 @@ public class Splash {
 		int x = (displayBounds.width - splashBounds.width) / 2;
 		int y = (displayBounds.height - splashBounds.height) / 2;
 		splash.setLocation(x, y);
-//		splash.open();
+		splash.open();
 	}
 
 	protected void initLayout(final Image image, final Shell shell) {

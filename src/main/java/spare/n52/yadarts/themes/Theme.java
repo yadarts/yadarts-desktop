@@ -46,6 +46,12 @@ public abstract class Theme {
 	protected static final String BACKGROUND_ALT = "background_alt.jpg";
 	protected static final String CORNER_TOP_LEFT = "corner_topleft.jpg";
 	protected static final String BORDER_LEFT = "border_left.jpg";
+	protected static final String CORNER_TOP_RIGHT = "corner_topright.jpg";
+	protected static final String BORDER_TOP = "border_top.jpg";
+	protected static final String CORNER_BOTTOM_LEFT = "corner_bottomleft.jpg";
+	protected static final String BORDER_BOTTOM = "border_bottom.jpg";
+	protected static final String CORNER_BOTTOM_RIGHT = "corner_bottomright.jpg";
+	protected static final String BORDER_RIGHT = "border_right.jpg";
 
 	protected static final FileFilter directoryFilter = new FileFilter() {
 				
@@ -161,5 +167,15 @@ public abstract class Theme {
 
 	public abstract Image getBorderLeft(Display display) throws FileNotFoundException;
 
+	public abstract Image getCornerTopRight(Display display) throws FileNotFoundException;
+
+	public abstract Image getBorderTop(Display display) throws FileNotFoundException;
 	
+	public abstract Image getCornerBottomLeft(Display display) throws FileNotFoundException;
+
+	public abstract Image getBorderBottom(Display display) throws FileNotFoundException;
+	
+	public abstract Image getCornerBottomRight(Display display) throws FileNotFoundException;
+
+	public abstract Image getBorderRight(Display display) throws FileNotFoundException;
 }

@@ -16,8 +16,9 @@
  */
 package spare.n52.yadarts;
 
-
 import java.io.FileNotFoundException;
+import java.util.Arrays;
+import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyAdapter;
@@ -34,14 +35,27 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import spare.n52.yadarts.config.Configuration;
+import spare.n52.yadarts.entity.Player;
+import spare.n52.yadarts.entity.impl.PlayerImpl;
 import spare.n52.yadarts.i18n.I18N;
-import spare.n52.yadarts.layout.BasicX01GameView;
+import spare.n52.yadarts.layout.NewGameDialog;
+import spare.n52.yadarts.layout.Three01GameView;
 import spare.n52.yadarts.themes.Theme;
 
 public class MainWindow {
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(MainWindow.class);
+	
+	private static List<Player> thePlayers = Arrays.asList(new Player[] {
+			new PlayerImpl("Henning"), new PlayerImpl("Andreas"),
+			new PlayerImpl("Benjamin"), new PlayerImpl("Albert"),
+			new PlayerImpl("Jan"), new PlayerImpl("Conny"),
+			new PlayerImpl("Eike"), new PlayerImpl("Ann"),
+			new PlayerImpl("Daniel"), new PlayerImpl("Carsten"),
+			new PlayerImpl("Matthes"), new PlayerImpl("Simon")
+			});
+	
 	private Shell shell;
 	private boolean fullscreen;
 
@@ -54,6 +68,8 @@ public class MainWindow {
 		
 		initLayout();
 
+//		Object result = NewGameDialog.create(shell).open();
+		
 		appendKeyListeners();
 
 		shell.open();
@@ -100,7 +116,7 @@ public class MainWindow {
 			logger.warn(e1.getMessage(), e1);
 		}
 		
-		new BasicX01GameView(shell, SWT.NONE, 301);
+		new Three01GameView().initialize(shell, SWT.NONE, thePlayers, 301);
 		
 		FillLayout layout = new FillLayout();
 		layout.marginHeight = 5;
@@ -116,7 +132,6 @@ public class MainWindow {
 
         MenuItem exitItem = new MenuItem(fileMenu, SWT.PUSH);
         exitItem.setText(I18N.getString("Exit"));
-        shell.setMenuBar(menuBar);
 
         exitItem.addSelectionListener(new SelectionAdapter() {
             @Override
@@ -125,6 +140,18 @@ public class MainWindow {
                 System.exit(0);
             }
         });
+        
+        MenuItem newGame = new MenuItem(fileMenu, SWT.PUSH);
+        newGame.setText(I18N.getString("newGame"));
+        
+        newGame.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                NewGameDialog.create(shell);
+            }
+        });
+        
+        shell.setMenuBar(menuBar);
         
         shell.pack();
 	}
