@@ -63,11 +63,11 @@ public abstract class BasicX01GameView implements
 	/**
 	 * 
 	 */
-	private static final String MISSED = "missed!";
+	private static final String MISSED = "X";
 	/**
 	 * 
 	 */
-	private static final String BOUNCE_OUT = "bounce out!";
+	private static final String BOUNCE_OUT = "B";
 	private static final Logger logger = LoggerFactory
 			.getLogger(BasicX01GameView.class);
 	public static final String PLAYERS_PARAMETER = "playersInput";
