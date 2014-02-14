@@ -49,6 +49,7 @@ import spare.n52.yadarts.i18n.I18N;
 import spare.n52.yadarts.layout.board.BoardView;
 import spare.n52.yadarts.persistence.HighscorePersistence;
 import spare.n52.yadarts.persistence.PersistencyException;
+import spare.n52.yadarts.sound.BasicSoundService;
 import spare.n52.yadarts.themes.BorderedControlContainer;
 import spare.n52.yadarts.themes.Theme;
 
@@ -115,6 +116,11 @@ public abstract class BasicX01GameView implements
 		EventEngine engine = EventEngine.instance();
 		x01Game = GenericX01Game.create(players, 301);
 		x01Game.registerGameListener(this);
+		
+		/*
+		 * TODO: check Configuration for existing SoundService 
+		 */
+		x01Game.registerGameListener(new BasicSoundService());
 		engine.registerListener(x01Game);
 		engine.start();
 	}

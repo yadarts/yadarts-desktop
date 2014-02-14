@@ -16,28 +16,15 @@
  */
 package spare.n52.yadarts.sound;
 
-import org.mockito.Mockito;
+import java.util.ServiceLoader;
 
-import spare.n52.yadarts.entity.PointEvent;
+import spare.n52.yadarts.games.GameStatusUpdateListener;
 
-public class CopyOfSoundTest {
+/**
+ * This is a tagging interface for sound service systems.
+ * It is used with {@link ServiceLoader} to discover available
+ * implementations.
+ */
+public interface SoundService extends GameStatusUpdateListener {
 
-	
-	public static void main(String[] args){
-		
-
-		BasicSoundService soundService = new BasicSoundService();
-		
-		PointEvent pointEvent = Mockito.mock(PointEvent.class);
-		
-		Mockito.when(pointEvent.getBaseNumber()).thenReturn(1);
-		Mockito.when(pointEvent.getMultiplier()).thenReturn(3);
-		
-		soundService.onPointEvent(pointEvent);
-		
-		soundService = null;
-		
-		System.gc();
-	}
-	
 }

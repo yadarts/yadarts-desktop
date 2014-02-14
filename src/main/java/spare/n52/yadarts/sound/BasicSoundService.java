@@ -1,3 +1,19 @@
+/**
+ * Copyright 2014 the staff of 52°North Initiative for Geospatial Open
+ * Source Software GmbH in their free time
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package spare.n52.yadarts.sound;
 
 import java.util.LinkedList;
@@ -14,10 +30,9 @@ import javax.sound.sampled.LineListener;
 import spare.n52.yadarts.config.Configuration;
 import spare.n52.yadarts.entity.Player;
 import spare.n52.yadarts.entity.PointEvent;
-import spare.n52.yadarts.games.GameStatusUpdateListener;
 import spare.n52.yadarts.games.Score;
 
-public class BasicSoundService implements GameStatusUpdateListener, LineListener {
+public class BasicSoundService implements SoundService, LineListener {
 
 	private ExecutorService executor;
 	private Queue<SoundId> soundIdQueueQueue;
@@ -38,9 +53,10 @@ public class BasicSoundService implements GameStatusUpdateListener, LineListener
 		playQueue();
 	}
 
-	protected void playQueue() {
+	protected synchronized void playQueue() {
+		//TODO check for RuntimeExceptions. Otherwise sound system breaks for this app runtime
 		if (!soundIdQueueQueue.isEmpty()) {
-			Sound sound = new Sound(getSoundPackageName(),soundIdQueueQueue.poll());
+			Sound sound = new Sound(getSoundPackageName(), soundIdQueueQueue.poll());
 			sound.addLineListener(this);
 			if (executor != null) {
 				executor.execute(sound);
@@ -80,32 +96,30 @@ public class BasicSoundService implements GameStatusUpdateListener, LineListener
 	}
 
 	@Override
-	public void provideFinishingCombination(
+	public void onFinishingCombination(
 			List<List<PointEvent>> finishingCombinations) {
 	}
 
 	@Override
-	public void onCurrentPlayerChanged(Player currentPlayer, int remainingScore) {
+	public void onCurrentPlayerChanged(Player currentPlayer, Score score) {
 	}
 
 	@Override
-	public void onBust(Player currentPlayer, int remainingScore) {
+	public void onBust(Player currentPlayer, Score score) {
 		playSound(SoundId.Bust);
 	}
 
 	@Override
-	public void roundStarted(int rounds) {
+	public void onRoundStarted(int rounds) {
 	}
 
 	@Override
-	public void onTurnFinished(Player finishedPlayer, int totalScore) {
-
+	public void onTurnFinished(Player finishedPlayer, Score score) {
 		playSound(SoundId.RemoveDarts);
-
 	}
 
 	@Override
-	public void remainingScoreForPlayer(Player currentPlayer, int remainingScore) {
+	public void onRemainingScoreForPlayer(Player currentPlayer, Score score) {
 	}
 
 	@Override
@@ -114,11 +128,11 @@ public class BasicSoundService implements GameStatusUpdateListener, LineListener
 	}
 
 	@Override
-	public void playerFinished(Player currentPlayer) {
+	public void onPlayerFinished(Player currentPlayer) {
 	}
 
 	@Override
-	public void onGameFinished(Map<Player, Score> playerScoreMap) {
+	public void onGameFinished(Map<Player, Score> playerScoreMap, List<Player> winner) {
 		for (Player player : playerScoreMap.keySet()) {
 			playSound(SoundId.Hit);
 		}
