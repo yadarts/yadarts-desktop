@@ -17,6 +17,7 @@
 package spare.n52.yadarts.layout;
 
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -42,10 +43,12 @@ import spare.n52.yadarts.EventEngine;
 import spare.n52.yadarts.InitializationException;
 import spare.n52.yadarts.entity.Player;
 import spare.n52.yadarts.entity.PointEvent;
+import spare.n52.yadarts.entity.impl.PlayerImpl;
 import spare.n52.yadarts.games.GameStatusUpdateListener;
 import spare.n52.yadarts.games.Score;
 import spare.n52.yadarts.games.x01.GenericX01Game;
 import spare.n52.yadarts.i18n.I18N;
+import spare.n52.yadarts.layout.GameParameter.Bounds;
 import spare.n52.yadarts.layout.board.BoardView;
 import spare.n52.yadarts.persistence.HighscorePersistence;
 import spare.n52.yadarts.persistence.PersistencyException;
@@ -58,6 +61,7 @@ public abstract class BasicX01GameView implements
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(BasicX01GameView.class);
+	public static final String PLAYERS_PARAMETER = "playersInput";
 	private Label currentScore;
 	private BoardView theBoard;
 	private Label turnSummary;
@@ -74,9 +78,27 @@ public abstract class BasicX01GameView implements
 	private Image background;
 	private Composite wrapper;
 	
+	/**
+	 * @return the X01 score (e.g. 701)
+	 */
+	protected abstract int getDesiredTargetScore();
 	
 	@Override
-	public void initialize(Composite parent, int style, List<Player> playerList, int targetScore) {
+	public List<GameParameter<?>> getInputParameters() {
+		List<GameParameter<?>> result = new ArrayList<>();
+		result.add(new GameParameter<String>(String.class, PLAYERS_PARAMETER, Bounds.unbound(2)));
+		return result;
+	}
+	
+	@Override
+	public void initialize(Composite parent, int style, List<GameParameter<?>> inputValues) {
+		this.players = resolvePlayers(inputValues);
+		if (this.players == null) {
+			throw new IllegalStateException("No players found!");
+		}
+		
+		this.targetScore = getDesiredTargetScore();
+		
 		this.wrapper = new Composite(parent, style);
 		
 		try {
@@ -88,15 +110,11 @@ public abstract class BasicX01GameView implements
 		
 		wrapper.setBackgroundImage(background);
 		
-		this.players = playerList;
-		this.targetScore = targetScore;
-		
 		FormLayout formLayout = new FormLayout();
 		formLayout.marginHeight = 0;
 		formLayout.marginWidth = 0;
 		formLayout.spacing = 0;
 		wrapper.setLayout(formLayout);
-
 
 		initFirstRow(wrapper);
 
@@ -111,10 +129,31 @@ public abstract class BasicX01GameView implements
 		}
 	}
 
+
+	private List<Player> resolvePlayers(List<GameParameter<?>> inputValues) {
+		for (GameParameter<?> gameParameter : inputValues) {
+			switch (gameParameter.getName()) {
+			case PLAYERS_PARAMETER:
+				List<Player> result = new ArrayList<>();
+				
+				Object value = gameParameter.getValue();
+
+				for (String player : (List<String>) value) {
+					result.add(new PlayerImpl(player));
+				}
+				
+				return result;
+			default:
+				break;
+			}
+		}
+		return null;
+	}
+
 	private void startGame() throws InitializationException,
 			AlreadyRunningException {
 		EventEngine engine = EventEngine.instance();
-		x01Game = GenericX01Game.create(players, 301);
+		x01Game = GenericX01Game.create(players, targetScore);
 		x01Game.registerGameListener(this);
 		
 		/*
