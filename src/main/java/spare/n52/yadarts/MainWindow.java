@@ -48,12 +48,7 @@ public class MainWindow {
 			.getLogger(MainWindow.class);
 	
 	private static List<Player> thePlayers = Arrays.asList(new Player[] {
-			new PlayerImpl("Henning"), new PlayerImpl("Andreas"),
-			new PlayerImpl("Benjamin"), new PlayerImpl("Albert"),
-			new PlayerImpl("Jan"), new PlayerImpl("Conny"),
-			new PlayerImpl("Eike"), new PlayerImpl("Ann"),
-			new PlayerImpl("Daniel"), new PlayerImpl("Carsten"),
-			new PlayerImpl("Matthes"), new PlayerImpl("Simon")
+			new PlayerImpl("Jan"), new PlayerImpl("Matthes")
 			});
 	
 	private Shell shell;
