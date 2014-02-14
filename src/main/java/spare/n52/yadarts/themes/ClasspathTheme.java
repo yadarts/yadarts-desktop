@@ -25,6 +25,7 @@ import org.eclipse.swt.widgets.Display;
 
 public class ClasspathTheme extends Theme {
 	
+
 	private Image boardHiImage;
 	private Image boardMImage;
 	private Image boardLoImage;
@@ -32,6 +33,13 @@ public class ClasspathTheme extends Theme {
 	private Image backgroundAltImage;
 	private Image cornerTopLeftImage;
 	private Image borderLeftImage;
+	private Image cornerTopRightImage;
+	private Image borderTopImage;
+	private Image cornerBottomLeftImage;
+	private Image borderBottomImage;
+	private Image cornerBottomRightImage;
+	private Image borderRightImage;
+	
 	private String baseResource;
 	private String boardHiResource;
 	private String boardMResource;
@@ -40,6 +48,14 @@ public class ClasspathTheme extends Theme {
 	private String backgroundAltImageResource;
 	private String cornerTopLeftImageResource;
 	private String borderLeftImageResource;
+	private String cornerTopRightImageResource = null;
+	private String borderTopImageResource = null;
+	private String cornerBottomLeftImageResource = null;
+	private String borderBottomImageResource = null;
+	private String cornerBottomRightImageResource = null;
+	private String borderRightImageResource = null;
+	
+	
 
 
 	public ClasspathTheme(String path) throws URISyntaxException {
@@ -53,8 +69,15 @@ public class ClasspathTheme extends Theme {
 		this.boardLoResource = baseResource.concat("/").concat(BOARD_LO);
 		this.backgroundImageResource = baseResource.concat("/").concat(BACKGROUND);
 		this.backgroundAltImageResource = baseResource.concat("/").concat(BACKGROUND_ALT);
+		
 		this.cornerTopLeftImageResource = baseResource.concat("/").concat(CORNER_TOP_LEFT);
 		this.borderLeftImageResource = baseResource.concat("/").concat(BORDER_LEFT);
+		this.cornerTopRightImageResource = baseResource.concat("/").concat(CORNER_TOP_RIGHT);
+		this.borderTopImageResource = baseResource.concat("/").concat(BORDER_TOP);
+		this.cornerBottomLeftImageResource = baseResource.concat("/").concat(CORNER_BOTTOM_RIGHT);
+		this.borderBottomImageResource = baseResource.concat("/").concat(BORDER_BOTTOM);
+		this.cornerBottomRightImageResource = baseResource.concat("/").concat(CORNER_BOTTOM_RIGHT);
+		this.borderRightImageResource = baseResource.concat("/").concat(BORDER_RIGHT);
 		
 		assertFilesExist();
 	}
@@ -65,8 +88,18 @@ public class ClasspathTheme extends Theme {
 		assertFileExists(this.boardLoResource);
 		assertFileExists(this.backgroundImageResource);
 		assertFileExists(this.backgroundAltImageResource);
+		
 		assertFileExists(this.cornerTopLeftImageResource);
 		assertFileExists(this.borderLeftImageResource);
+		
+//		assertFileExists(this.cornerTopRightImageResource);
+//		assertFileExists(this.borderTopImageResource);
+//		
+//		assertFileExists(this.cornerBottomLeftImageResource);
+//		assertFileExists(this.borderBottomImageResource);
+//		
+//		assertFileExists(this.cornerBottomRightImageResource);
+//		assertFileExists(this.borderRightImageResource);
 	}
 
 	private void assertFileExists(String f) {
@@ -139,6 +172,63 @@ public class ClasspathTheme extends Theme {
 		}
 		
 		return this.borderLeftImage;
+	}
+
+	@Override
+	public Image getCornerTopRight(Display d)
+			throws FileNotFoundException {
+		if (this.cornerTopRightImage == null) {
+			this.cornerTopRightImage = new Image(d, getClass().getResourceAsStream(cornerTopRightImageResource));
+		}
+		
+		return this.cornerTopRightImage;
+	}
+
+	@Override
+	public Image getBorderTop(Display d) throws FileNotFoundException {
+		if (this.borderTopImage == null) {
+			this.borderTopImage = new Image(d, getClass().getResourceAsStream(borderTopImageResource));
+		}
+		
+		return this.borderTopImage;
+	}
+
+	@Override
+	public Image getCornerBottomLeft(Display d)
+			throws FileNotFoundException {
+		if (this.cornerBottomLeftImage == null) {
+			this.cornerBottomLeftImage = new Image(d, getClass().getResourceAsStream(cornerBottomLeftImageResource));
+		}
+		
+		return this.cornerBottomLeftImage;
+	}
+
+	@Override
+	public Image getBorderBottom(Display d) throws FileNotFoundException {
+		if (this.borderBottomImage == null) {
+			this.borderBottomImage = new Image(d, getClass().getResourceAsStream(borderBottomImageResource));
+		}
+		
+		return this.borderBottomImage;
+	}
+
+	@Override
+	public Image getCornerBottomRight(Display d)
+			throws FileNotFoundException {
+		if (this.cornerBottomRightImage == null) {
+			this.cornerBottomRightImage = new Image(d, getClass().getResourceAsStream(cornerBottomRightImageResource));
+		}
+		
+		return this.cornerBottomRightImage;
+	}
+
+	@Override
+	public Image getBorderRight(Display d) throws FileNotFoundException {
+		if (this.borderRightImage == null) {
+			this.borderRightImage = new Image(d, getClass().getResourceAsStream(borderRightImageResource));
+		}
+		
+		return this.borderRightImage;
 	}
 
 

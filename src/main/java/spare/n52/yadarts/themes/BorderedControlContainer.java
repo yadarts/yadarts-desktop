@@ -85,9 +85,9 @@ public abstract class BorderedControlContainer extends Composite {
 			cornerBottomLeft = rotateImage(cornerBottomRight, 90);
 
 			borderLeft = Theme.getCurrentTheme().getBorderLeft(getDisplay());
-			borderTop = rotateImage(borderLeft, 90);
-			borderRight = rotateImage(borderTop, 90);
-			borderBottom = rotateImage(borderRight, 90);
+			borderTop = Theme.getCurrentTheme().getBorderTop(getDisplay());
+			borderRight = rotateImage(borderLeft, 180);
+			borderBottom = rotateImage(borderTop, 180);
 		} catch (FileNotFoundException e) {
 			logger.warn(e.getMessage(), e);
 		}
@@ -211,9 +211,26 @@ public abstract class BorderedControlContainer extends Composite {
 
 	protected abstract Control createContents(Composite parent);
 
-	private Image rotateImage(Image src, float angle) {
+	private Image rotateImage(Image src, int angle) {
+		int rotateType;
+		
+		switch (angle) {
+		case 90:
+			rotateType = SWT.RIGHT;
+			break;
+		case 180:
+			rotateType = SWT.DOWN;
+			break;
+		case 270:
+			rotateType = SWT.LEFT;
+			break;
+		default:
+			rotateType = SWT.RIGHT;
+			break;
+		}
+		
 		return new Image(this.getDisplay(), rotate(src.getImageData(),
-				SWT.RIGHT));
+				rotateType));
 	}
 
 	static ImageData rotate(ImageData srcData, int direction) {

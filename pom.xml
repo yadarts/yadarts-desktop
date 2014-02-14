@@ -101,11 +101,11 @@
 				<artifactId>yadarts-dummy-board</artifactId>
 				<version>${project.version}</version>
 			</dependency>
-<!-- 			<dependency> -->
-<!-- 				<groupId>${project.groupId}</groupId> -->
-<!-- 				<artifactId>yadarts-usb</artifactId> -->
-<!-- 				<version>${project.version}</version> -->
-<!-- 			</dependency> -->
+			<dependency>
+				<groupId>${project.groupId}</groupId>
+				<artifactId>yadarts-usb</artifactId>
+				<version>${project.version}</version>
+			</dependency>
 			<dependency>
 				<groupId>org.slf4j</groupId>
 				<artifactId>slf4j-api</artifactId>
@@ -116,6 +116,18 @@
 				<artifactId>logback-classic</artifactId>
 				<version>1.0.13</version>
 			</dependency>
+
+			<dependency>
+				<groupId>joda-time</groupId>
+				<artifactId>joda-time</artifactId>
+				<version>2.2</version>
+			</dependency>
+			<dependency>
+				<groupId>org.xerial</groupId>
+				<artifactId>sqlite-jdbc</artifactId>
+				<version>3.7.2</version>
+			</dependency>
+            
 
 			<!-- SWT -->
 			<dependency>
@@ -173,11 +185,23 @@
 			<groupId>${project.groupId}</groupId>
 			<artifactId>yadarts-runtime</artifactId>
 		</dependency>
+<!-- 		<dependency> -->
+<!-- 			<groupId>${project.groupId}</groupId> -->
+<!-- 			<artifactId>yadarts-dummy-board</artifactId> -->
+<!-- 		</dependency> -->
 		<dependency>
 			<groupId>${project.groupId}</groupId>
-			<artifactId>yadarts-dummy-board</artifactId>
+			<artifactId>yadarts-usb</artifactId>
 		</dependency>
 		
+		<dependency>
+			<groupId>joda-time</groupId>
+			<artifactId>joda-time</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.xerial</groupId>
+			<artifactId>sqlite-jdbc</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>

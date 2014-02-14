@@ -17,7 +17,7 @@
 package spare.n52.yadarts.layout;
 
 import java.io.FileNotFoundException;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -48,23 +48,26 @@ import spare.n52.yadarts.games.GameStatusUpdateListener;
 import spare.n52.yadarts.games.Score;
 import spare.n52.yadarts.games.x01.GenericX01Game;
 import spare.n52.yadarts.i18n.I18N;
+import spare.n52.yadarts.layout.GameParameter.Bounds;
 import spare.n52.yadarts.layout.board.BoardView;
+import spare.n52.yadarts.persistence.HighscorePersistence;
+import spare.n52.yadarts.persistence.PersistencyException;
+import spare.n52.yadarts.sound.BasicSoundService;
 import spare.n52.yadarts.themes.BorderedControlContainer;
 import spare.n52.yadarts.themes.Theme;
 
-public class BasicX01GameView extends Composite implements
-		GameStatusUpdateListener {
+public abstract class BasicX01GameView implements
+		GameStatusUpdateListener, GameView {
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(BasicX01GameView.class);
+	public static final String PLAYERS_PARAMETER = "playersInput";
 	private Label currentScore;
 	private BoardView theBoard;
 	private Label turnSummary;
 	private Composite leftBar;
 	private Composite rightBar;
-	private static List<Player> thePlayers = Arrays.asList(new Player[] {
-			new PlayerImpl("Jan"), new PlayerImpl("Benjamin"),
-			new PlayerImpl("Eike"), new PlayerImpl("Matthes") });
+
 	private Composite bottomBar;
 	private Label statusBar;
 	private GenericX01Game x01Game;
@@ -73,38 +76,51 @@ public class BasicX01GameView extends Composite implements
 	private int targetScore;
 	private Label roundLabel;
 	private Image background;
+	private Composite wrapper;
 	
-	public BasicX01GameView(Composite parent, int style, int targetScore) {
-		this(parent, style, thePlayers, targetScore);
+	/**
+	 * @return the X01 score (e.g. 701)
+	 */
+	protected abstract int getDesiredTargetScore();
+	
+	@Override
+	public List<GameParameter<?>> getInputParameters() {
+		List<GameParameter<?>> result = new ArrayList<>();
+		result.add(new GameParameter<String>(String.class, PLAYERS_PARAMETER, Bounds.unbound(2)));
+		return result;
 	}
-
-	public BasicX01GameView(Composite parent, int style, List<Player> playerList, int targetScore) {
-		super(parent, style);
+	
+	@Override
+	public void initialize(Composite parent, int style, List<GameParameter<?>> inputValues) {
+		this.players = resolvePlayers(inputValues);
+		if (this.players == null) {
+			throw new IllegalStateException("No players found!");
+		}
+		
+		this.targetScore = getDesiredTargetScore();
+		
+		this.wrapper = new Composite(parent, style);
 		
 		try {
-			this.background = Theme.getCurrentTheme().getBackground(getDisplay());
+			this.background = Theme.getCurrentTheme().getBackground(wrapper.getDisplay());
 		} catch (FileNotFoundException e1) {
 			logger.warn(e1.getMessage(), e1);
 			throw new IllegalStateException("The theme does not provide a valid background resource");
 		}
 		
-		this.setBackgroundImage(background);
-		
-		this.players = playerList;
-		this.targetScore = targetScore;
+		wrapper.setBackgroundImage(background);
 		
 		FormLayout formLayout = new FormLayout();
 		formLayout.marginHeight = 0;
 		formLayout.marginWidth = 0;
 		formLayout.spacing = 0;
-		this.setLayout(formLayout);
+		wrapper.setLayout(formLayout);
 
+		initFirstRow(wrapper);
 
-		initFirstRow(this);
+		initSecondRow(wrapper);
 
-		initSecondRow(this);
-
-		this.pack();
+		wrapper.pack();
 
 		try {
 			startGame();
@@ -113,11 +129,37 @@ public class BasicX01GameView extends Composite implements
 		}
 	}
 
+
+	private List<Player> resolvePlayers(List<GameParameter<?>> inputValues) {
+		for (GameParameter<?> gameParameter : inputValues) {
+			switch (gameParameter.getName()) {
+			case PLAYERS_PARAMETER:
+				List<Player> result = new ArrayList<>();
+				
+				Object value = gameParameter.getValue();
+
+				for (String player : (List<String>) value) {
+					result.add(new PlayerImpl(player));
+				}
+				
+				return result;
+			default:
+				break;
+			}
+		}
+		return null;
+	}
+
 	private void startGame() throws InitializationException,
 			AlreadyRunningException {
 		EventEngine engine = EventEngine.instance();
-		x01Game = new GenericX01Game(players, 301);
+		x01Game = GenericX01Game.create(players, targetScore);
 		x01Game.registerGameListener(this);
+		
+		/*
+		 * TODO: check Configuration for existing SoundService 
+		 */
+		x01Game.registerGameListener(new BasicSoundService());
 		engine.registerListener(x01Game);
 		engine.start();
 	}
@@ -229,7 +271,7 @@ public class BasicX01GameView extends Composite implements
 	}
 
 	private void updateLabel(final Label theLabel, final String value) {
-		getDisplay().asyncExec(new Runnable() {
+		wrapper.getDisplay().asyncExec(new Runnable() {
 			@Override
 			public void run() {
 				theLabel.setText(value);
@@ -262,7 +304,7 @@ public class BasicX01GameView extends Composite implements
 	}
 
 	private void processPointEvent(final String value) {
-		getDisplay().asyncExec(new Runnable() {
+		wrapper.getDisplay().asyncExec(new Runnable() {
 			@Override
 			public void run() {
 				String current = turnSummary.getText();
@@ -343,7 +385,16 @@ public class BasicX01GameView extends Composite implements
 		logger.info("The game has ended!");
 
 		for (Player player : playerScoreMap.keySet()) {
-			logger.info("{}: {}", player, playerScoreMap.get(player));
+			Score score = playerScoreMap.get(player);
+			logger.info("{}: {}", player, score);
+			
+			if (score.getTotalScore() == 0) {
+				try {
+					HighscorePersistence.Instance.instance().addHighscoreEntry(x01Game.getClass(), score);
+				} catch (PersistencyException e) {
+					logger.warn(e.getMessage(), e);
+				}
+			}
 		}
 
 		updateLabel(statusBar, String.format(I18N.getString("gameHasEnded"), winner.toString()));
