@@ -60,21 +60,21 @@ import spare.n52.yadarts.themes.Theme;
 public abstract class BasicX01GameView implements
 		GameStatusUpdateListener, GameView {
 
-	/**
-	 * 
-	 */
+	private static final String FONT = "Arial";
+	private static final int NORMAL_FONT = 16;
+	private static final int LARGE_FONT = 24;
 	private static final String MISSED = "X";
-	/**
-	 * 
-	 */
 	private static final String BOUNCE_OUT = "B";
 	private static final Logger logger = LoggerFactory
 			.getLogger(BasicX01GameView.class);
 	public static final String PLAYERS_PARAMETER = "playersInput";
 	private Label currentScore;
 	private BoardView theBoard;
+	private Label currentPlayer;
 	private Label turnThrows;
 	private Label turnScore;
+	private Label finishingCombinationsLabel;
+	private Label finishingCombinations;
 	private Composite leftBar;
 	private Composite rightBar;
 
@@ -135,6 +135,8 @@ public abstract class BasicX01GameView implements
 		initSecondRow(wrapper);
 
 		wrapper.pack();
+		
+		currentPlayer.setText(players.get(0).getName());
 
 		try {
 			startGame();
@@ -195,7 +197,7 @@ public abstract class BasicX01GameView implements
 
 	private void createRightBar(final Composite container) {
 		rightBar = new BorderedControlContainer(container, SWT.NONE) {
-			
+
 			@Override
 			protected Control createContents(final Composite parent) {
 				final Composite rightBarContainer = new Composite(parent, SWT.NONE);
@@ -205,21 +207,34 @@ public abstract class BasicX01GameView implements
 				leftBarLayout.spacing = 5;
 				rightBarContainer.setLayout(leftBarLayout);
 				
-				new Label(rightBarContainer, SWT.UNDERLINE_SINGLE).setText(I18N.getString("currentRound").concat(":"));
-				roundLabel = new Label(rightBarContainer, SWT.NONE);
-				roundLabel.setText("1");
-				roundLabel.setFont(new Font(getDisplay(), new FontData("Arial", 16,
-						SWT.NONE)));
-
+				new Label(rightBarContainer, SWT.UNDERLINE_DOUBLE).setText(I18N.getString("currentPlayer").concat(":"));
+				currentPlayer = new Label(rightBarContainer, SWT.NONE);
+				currentPlayer.setFont(new Font(getDisplay(), new FontData(FONT, LARGE_FONT,SWT.NONE)));
+				
 				new Label(rightBarContainer, SWT.UNDERLINE_SINGLE).setText(I18N.getString("turnThrows").concat(":"));
 				turnThrows = new Label(rightBarContainer, SWT.NONE);
-				turnThrows.setFont(new Font(getDisplay(), new FontData("Arial", 16,
+				turnThrows.setFont(new Font(getDisplay(), new FontData(FONT, NORMAL_FONT,
 						SWT.NONE)));
 				
 				new Label(rightBarContainer, SWT.UNDERLINE_SINGLE).setText(I18N.getString("turnScore").concat(":"));
 				turnScore = new Label(rightBarContainer, SWT.NONE);
-				turnScore.setFont(new Font(getDisplay(), new FontData("Arial", 16,
+				turnScore.setFont(new Font(getDisplay(), new FontData(FONT, LARGE_FONT,
 						SWT.NONE)));
+				
+				new Label(rightBarContainer, SWT.UNDERLINE_SINGLE).setText(I18N.getString("remainingScore").concat(":"));
+				currentScore = new Label(rightBarContainer, SWT.NONE);
+				currentScore.setFont(new Font(getDisplay(), new FontData(FONT, LARGE_FONT,
+						SWT.NONE)));
+				currentScore.setText(Integer.toString(getDesiredTargetScore()));
+				
+				finishingCombinationsLabel = new Label(rightBarContainer, SWT.UNDERLINE_SINGLE);
+				finishingCombinationsLabel.setText(I18N.getString("finishingCombinations").concat(":"));
+				finishingCombinationsLabel.setVisible(false);
+				finishingCombinations = new Label(rightBarContainer, SWT.NONE);
+				finishingCombinations.setFont(new Font(getDisplay(), new FontData(FONT, NORMAL_FONT,
+						SWT.NONE)));
+				finishingCombinations.setVisible(false);
+				
 				return rightBarContainer;
 			}
 		};
@@ -244,16 +259,17 @@ public abstract class BasicX01GameView implements
 				final GridLayout leftBarLayout = new GridLayout(1, true);
 				leftBarContainer.setLayout(leftBarLayout);
 				
+				new Label(leftBarContainer, SWT.UNDERLINE_SINGLE).setText(I18N.getString("currentRound").concat(":"));
+				roundLabel = new Label(leftBarContainer, SWT.NONE);
+				roundLabel.setText("1");
+				roundLabel.setFont(new Font(getDisplay(), new FontData(FONT, NORMAL_FONT,
+						SWT.NONE)));
+				
 				new Label(leftBarContainer, SWT.UNDERLINE_SINGLE).setText(I18N.getString("theTurnIsOn").concat(":"));
 				playerTable = new PlayerTableView(leftBarContainer, SWT.NONE, players, targetScore);
 				final GridData data = new GridData(SWT.FILL, SWT.FILL, true, false);
 				playerTable.setLayoutData(data);
 
-				new Label(leftBarContainer, SWT.UNDERLINE_SINGLE).setText(I18N.getString("remainingScore").concat(":"));
-				currentScore = new Label(leftBarContainer, SWT.NONE);
-				currentScore.setFont(new Font(getDisplay(), new FontData("Arial", 24,
-						SWT.NONE)));
-				currentScore.setText("301");
 				return leftBarContainer;
 			}
 		};
@@ -274,7 +290,7 @@ public abstract class BasicX01GameView implements
 				bottomBarContainer.setLayout(new FillLayout());
 				bottomBarContainer.setBackgroundMode(SWT.INHERIT_FORCE);
 				statusBar = new Label(bottomBarContainer, SWT.NONE);
-				statusBar.setFont(new Font(getDisplay(), new FontData("Arial", 14,
+				statusBar.setFont(new Font(getDisplay(), new FontData(FONT, 14,
 						SWT.NONE)));
 				return bottomBarContainer;
 			}
@@ -302,6 +318,7 @@ public abstract class BasicX01GameView implements
 	@Override
 	public void onCurrentPlayerChanged(final Player p, final Score remaining) {
 		playerTable.setCurrentPlayer(p, remaining);
+		updateLabel(currentPlayer, p.getName());
 		updateLabel(turnThrows, "");
 		updateLabel(turnScore,"");
 		turnScoreMemory.clear();
@@ -377,6 +394,9 @@ public abstract class BasicX01GameView implements
 				sb.append(" + ");
 			}
 			logger.info(sb.toString());
+			this.finishingCombinations.setText(sb.toString());
+			this.finishingCombinations.setVisible(true);
+			finishingCombinationsLabel.setVisible(true);
 		}
 	}
 
