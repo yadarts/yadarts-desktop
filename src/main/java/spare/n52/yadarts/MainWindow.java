@@ -17,6 +17,7 @@
 package spare.n52.yadarts;
 
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -35,11 +36,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import spare.n52.yadarts.config.Configuration;
-import spare.n52.yadarts.entity.Player;
-import spare.n52.yadarts.entity.impl.PlayerImpl;
 import spare.n52.yadarts.i18n.I18N;
+import spare.n52.yadarts.layout.BasicX01GameView;
+import spare.n52.yadarts.layout.GameParameter;
 import spare.n52.yadarts.layout.NewGameDialog;
 import spare.n52.yadarts.layout.Three01GameView;
+import spare.n52.yadarts.layout.GameParameter.Bounds;
 import spare.n52.yadarts.themes.Theme;
 
 public class MainWindow {
@@ -47,9 +49,16 @@ public class MainWindow {
 	private static final Logger logger = LoggerFactory
 			.getLogger(MainWindow.class);
 	
-	private static List<Player> thePlayers = Arrays.asList(new Player[] {
-			new PlayerImpl("Jan"), new PlayerImpl("Matthes")
-			});
+	private static List<String> thePlayers = Arrays.asList(new String[] {
+			"Simon", "Conny", "Daniel"
+	});
+
+	private static GameParameter<String> gp;
+	
+	static {
+		gp = new GameParameter<String>(String.class, BasicX01GameView.PLAYERS_PARAMETER, Bounds.unbound(2));
+		gp.setValue(thePlayers);
+	}
 	
 	private Shell shell;
 	private boolean fullscreen;
@@ -63,7 +72,7 @@ public class MainWindow {
 		
 		initLayout();
 
-//		Object result = NewGameDialog.create(shell).open();
+		Object result = NewGameDialog.create(shell).open();
 		
 		appendKeyListeners();
 
@@ -111,7 +120,9 @@ public class MainWindow {
 			logger.warn(e1.getMessage(), e1);
 		}
 		
-		new Three01GameView().initialize(shell, SWT.NONE, thePlayers, 301);
+		List<GameParameter<?>> gpList = new ArrayList<>();
+		gpList.add(gp);
+		new Three01GameView().initialize(shell, SWT.NONE, gpList);
 		
 		FillLayout layout = new FillLayout();
 		layout.marginHeight = 5;

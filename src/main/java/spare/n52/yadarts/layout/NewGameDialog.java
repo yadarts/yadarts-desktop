@@ -21,8 +21,11 @@ import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StackLayout;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
@@ -30,16 +33,20 @@ import org.eclipse.swt.widgets.Dialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Spinner;
+import org.eclipse.swt.widgets.Text;
+
+import spare.n52.yadarts.i18n.I18N;
 
 public class NewGameDialog extends Dialog {
 
 	private Shell shell;
-	private Object result;
 	private Combo comboDropDown;
 	private List<GameView> availableGames;
 	private Composite gameSpecificArea;
 	private StackLayout gameSpecificAreaLayout = new StackLayout();
 	private List<Composite> gameLayouts = new ArrayList<>();
+	private List<GameParameter<?>> result;
 
 	public static NewGameDialog create(Shell shell) {
 		return new NewGameDialog(shell);
@@ -50,22 +57,24 @@ public class NewGameDialog extends Dialog {
 		availableGames = GameView.AvailableGames.get();
 	}
 
-	public Object open() {
+	public List<GameParameter<?>> open() {
 		createContents();
 		shell.open();
 		shell.layout();
 		Display display = getParent().getDisplay();
+		
 		while (!shell.isDisposed()) {
 			if (!display.readAndDispatch()) {
 				display.sleep();
 			}
 		}
+		
 		return result;
 	}
 
 	protected void createContents() {
 		shell = new Shell(getParent(), SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
-		shell.setText("New Game");
+		shell.setText(I18N.getString("newGame"));
 		
 	    RowLayout rowLayout = new RowLayout(SWT.VERTICAL);
 	    rowLayout.spacing = 10;
@@ -82,7 +91,8 @@ public class NewGameDialog extends Dialog {
 		gameSpecificArea.setLayout(gameSpecificAreaLayout);
 		
 		Composite empty = new Composite(gameSpecificArea, SWT.NONE);
-		empty.setSize(640, 480);
+		empty.setLayout(new FillLayout());
+		empty.pack();
 		
 		for (GameView gv : availableGames) {
 			gameLayouts.add(createGameLayout(gv));
@@ -95,11 +105,62 @@ public class NewGameDialog extends Dialog {
 
 	private Composite createGameLayout(GameView gv) {
 		Composite container = new Composite(gameSpecificArea, SWT.NONE);
+		container.setLayout(new RowLayout(SWT.VERTICAL));
 		
-		new Label(container, SWT.NONE).setText(gv.getGameName());
+		new Label(container, SWT.NONE).setText(I18N.getString("newGame") +": "+ gv.getGameName());
+		
+		this.result = gv.getInputParameters();
+		createInputFields(container, this.result);
 		
 		container.pack();
 		return container;
+	}
+
+	private void createInputFields(final Composite container,
+			List<GameParameter<?>> inputParameters) {
+		for (GameParameter<?> gameParameter : inputParameters) {
+			if (gameParameter.getBounds().getMax() > 1) {
+				
+				final List<Object> currentParameterValue = new ArrayList<>();
+				
+				final Composite inputField = new Composite(container, SWT.NONE);
+				inputField.setLayout(new RowLayout(SWT.HORIZONTAL));
+				new Label(inputField, SWT.NONE).setText(I18N.getString("numberOf")+ " "+
+							I18N.getString(gameParameter.getName()));
+				final Spinner boundsSpinner = new Spinner(inputField, SWT.NONE);
+				boundsSpinner.setMinimum(gameParameter.getBounds().getMin());
+				boundsSpinner.setMaximum(gameParameter.getBounds().getMax());
+				boundsSpinner.addModifyListener(new ModifyListener() {
+					
+					@Override
+					public void modifyText(ModifyEvent e) {
+						int newCount = Integer.parseInt(boundsSpinner.getText());
+						
+						if (currentParameterValue.size() < newCount) {
+							addNewInputRow(container);
+						}
+						else {
+							removeLastInputRow();
+						}
+					}
+
+					private void removeLastInputRow() {
+						// TODO Auto-generated method stub
+						
+					}
+
+					private void addNewInputRow(Composite parent) {
+						Text in = new Text(parent, SWT.SINGLE);
+						currentParameterValue.add(in);
+						parent.layout();
+						parent.pack();
+						parent.redraw();
+					}
+					
+				});
+			}
+			new Label(container, SWT.NONE).setText(I18N.getString(gameParameter.getName()));
+		}
 	}
 
 	private String[] createItems() {

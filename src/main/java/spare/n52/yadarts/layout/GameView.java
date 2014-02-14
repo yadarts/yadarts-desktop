@@ -22,16 +22,36 @@ import java.util.ServiceLoader;
 
 import org.eclipse.swt.widgets.Composite;
 
-import spare.n52.yadarts.entity.Player;
-
+/**
+ * An interface for providing a specific game view.
+ * it supports the definition of required input parameters.
+ * 
+ */
 public interface GameView {
 
-	public List<GameParameter> getInputParameters();
+	/**
+	 * @return the input parameters a game requires to
+	 * succesfully init. The provided filled and used as
+	 * a parameter for {@link #initialize(Composite, int, List)}
+	 */
+	public List<GameParameter<?>> getInputParameters();
 	
+	/**
+	 * @return the game name for UI usage
+	 */
 	public String getGameName();
 	
-	void initialize(Composite parent, int style, List<Player> playerList,
-			int targetScore);
+	/**
+	 * this is the method an impl shall use to create
+	 * its UI. The parent is provided and shall be used
+	 * to create the SWT components.
+	 * 
+	 * @param parent the SWT parent
+	 * @param style the SWT style, used as required
+	 * @param inputValues the filled values of {@link #getInputParameters()}
+	 */
+	void initialize(Composite parent, int style,
+			 List<GameParameter<?>> inputValues);
 	
 	public static class AvailableGames {
 		
