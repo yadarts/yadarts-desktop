@@ -76,12 +76,7 @@ public class NewGameDialog extends Dialog {
 		shell = new Shell(getParent(), SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
 		shell.setText(I18N.getString("newGame"));
 		
-	    RowLayout rowLayout = new RowLayout(SWT.VERTICAL);
-	    rowLayout.spacing = 10;
-	    rowLayout.marginWidth = 5;
-	    rowLayout.marginHeight = 5;
-	    
-	    shell.setLayout(rowLayout);
+	    shell.setLayout(new FillLayout());
 
 		comboDropDown = new Combo(shell, SWT.READ_ONLY);
 		comboDropDown.setItems(createItems());

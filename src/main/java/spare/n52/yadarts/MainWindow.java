@@ -72,8 +72,6 @@ public class MainWindow {
 		
 		initLayout();
 
-		Object result = NewGameDialog.create(shell).open();
-		
 		appendKeyListeners();
 
 		shell.open();
@@ -153,7 +151,7 @@ public class MainWindow {
         newGame.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                NewGameDialog.create(shell);
+                NewGameDialog.create(shell).open();
             }
         });
         
