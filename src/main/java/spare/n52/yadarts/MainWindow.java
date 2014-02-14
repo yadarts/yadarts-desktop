@@ -72,7 +72,7 @@ public class MainWindow {
 		
 		initLayout();
 
-//		Object result = NewGameDialog.create(shell).open();
+		Object result = NewGameDialog.create(shell).open();
 		
 		appendKeyListeners();
 

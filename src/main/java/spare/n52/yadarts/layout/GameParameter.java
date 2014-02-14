@@ -16,36 +16,57 @@
  */
 package spare.n52.yadarts.layout;
 
-public class GameParameter {
+import java.util.Collections;
+import java.util.List;
+
+/**
+ * a {@link GameView} defines its required input params via this
+ * method.
+ * 
+ * @param <T> the type of the param
+ */
+public class GameParameter<T> {
 
 	private String name;
-	private Class<?> dataType;
 	private Bounds majority;
-	private Object value;
+	private List<T> value;
+	private Class<? extends T> clazz;
 	
-	public GameParameter(String name, Class<?> dataType, Bounds majority) {
+	public GameParameter(Class<? extends T> clazz, String name, Bounds majority) {
+		this.clazz = clazz;
 		this.name = name;
-		this.dataType = dataType;
 		this.majority = majority;
 	}
 	
-	public void setValue(Object value) {
+	/**
+	 * @param value the value (e.g. as received from a user input). if only one, use {@link Collections#singletonList(Object)}
+	 */
+	public void setValue(List<T> value) {
 		this.value = value;
 	}
-
-	public Object getValue() {
+	
+	/**
+	 * @return the filled value
+	 */
+	public List<T> getValue() {
 		return value;
 	}
+	
+	public Class<? extends T> getType() {
+		return clazz;
+	}
 
+	/**
+	 * @return the name of the param, shall be unique in the owning {@link GameView} 
+	 */
 	public String getName() {
 		return name;
 	}
 	
-	public Class<?> getDataType() {
-		return dataType;
-	}
-	
-	public Bounds getMajority() {
+	/**
+	 * @return the (min, max) majority of the param
+	 */
+	public Bounds getBounds() {
 		return majority;
 	}
 	
@@ -77,5 +98,6 @@ public class GameParameter {
 		}
 		
 	}
+
 	
 }

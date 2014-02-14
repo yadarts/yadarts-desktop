@@ -16,23 +16,18 @@
  */
 package spare.n52.yadarts.layout;
 
-import java.util.Collections;
-import java.util.List;
 
-
-import spare.n52.yadarts.layout.GameParameter.Bounds;
-
-public class Three01GameView extends BasicX01GameView implements GameView {
-
-
-	@Override
-	public List<GameParameter> getInputParameters() {
-		return Collections.singletonList(new GameParameter("Players", String.class, Bounds.unbound(2)));
-	}
+public class Three01GameView extends BasicX01GameView {
 
 	@Override
 	public String getGameName() {
 		return "301";
 	}
+
+	@Override
+	protected int getDesiredTargetScore() {
+		return 301;
+	}
+
 
 }
