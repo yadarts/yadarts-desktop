@@ -17,6 +17,7 @@
 package spare.n52.yadarts.layout;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -58,7 +59,7 @@ public class NewGameDialog extends Dialog {
 	private List<GameView> availableGames;
 	private Composite gameSpecificAreaStack;
 	private StackLayout gameSpecificAreaStackLayout = new StackLayout();
-	private List<GameParameter<?>> result;
+	private Map<GameView, List<GameParameter<?>>> result;
 	private List<GameLayout> gameLayouts = new ArrayList<>();
 	protected GameLayout currentLayout;
 
@@ -71,7 +72,17 @@ public class NewGameDialog extends Dialog {
 		availableGames = GameView.AvailableGames.get();
 	}
 
-	public List<GameParameter<?>> open() {
+	/**
+	 * Creates a singleton map of {@link GameView} and
+	 * compatible {@link GameParameter}s. The params
+	 * are filled via the values of the dialogs UI.
+	 * the resulting {@link GameView} shalled be
+	 * {@link GameView#initialize(Composite, int, List)} with
+	 * the provided list of {@link GameParameter}
+	 * 
+	 * @return a singleton map of {@link GameView} and compatible {@link GameParameter}s.
+	 */
+	public Map<GameView, List<GameParameter<?>>> open() {
 		createContents();
 		shell.open();
 		shell.layout();
@@ -148,7 +159,8 @@ public class NewGameDialog extends Dialog {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				super.widgetSelected(e);
-				result = currentLayout.computeFilledParameters();
+				List<GameParameter<?>> params = currentLayout.computeFilledParameters();
+				result = Collections.singletonMap(currentLayout.game, params);
 				shell.dispose();
 			}
 			

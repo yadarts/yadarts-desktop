@@ -20,6 +20,7 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyAdapter;
@@ -28,6 +29,10 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.layout.FormLayout;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.RowLayout;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
@@ -39,8 +44,9 @@ import spare.n52.yadarts.config.Configuration;
 import spare.n52.yadarts.i18n.I18N;
 import spare.n52.yadarts.layout.BasicX01GameView;
 import spare.n52.yadarts.layout.GameParameter;
+import spare.n52.yadarts.layout.GameView;
 import spare.n52.yadarts.layout.NewGameDialog;
-import spare.n52.yadarts.layout.Three01GameView;
+import spare.n52.yadarts.layout.WelcomeView;
 import spare.n52.yadarts.layout.GameParameter.Bounds;
 import spare.n52.yadarts.themes.Theme;
 
@@ -62,6 +68,9 @@ public class MainWindow {
 	
 	private Shell shell;
 	private boolean fullscreen;
+
+	private Composite rootPanel;
+	private Composite currentContentView;
 
 	public MainWindow(Display display, MainWindowOpenedListener l) {
 		shell = new Shell(display);
@@ -120,12 +129,17 @@ public class MainWindow {
 		
 		List<GameParameter<?>> gpList = new ArrayList<>();
 		gpList.add(gp);
-		new Three01GameView().initialize(shell, SWT.NONE, gpList);
-		
+
 		FillLayout layout = new FillLayout();
 		layout.marginHeight = 5;
 		layout.marginWidth = 5;
 		shell.setLayout(layout);
+		
+		rootPanel = new Composite(shell, SWT.NONE);
+		FillLayout glayout = new FillLayout();
+		rootPanel.setLayout(glayout);
+		
+		createWelcomePanel();
 
         Menu menuBar = new Menu(shell, SWT.BAR);
         MenuItem cascadeFileMenu = new MenuItem(menuBar, SWT.CASCADE);
@@ -134,6 +148,29 @@ public class MainWindow {
         Menu fileMenu = new Menu(shell, SWT.DROP_DOWN);
         cascadeFileMenu.setMenu(fileMenu);
 
+        /*
+         * new game menu item
+         */
+        MenuItem newGame = new MenuItem(fileMenu, SWT.PUSH);
+        newGame.setText(I18N.getString("newGame"));
+        
+        newGame.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+            	Map<GameView, List<GameParameter<?>>> theNewGame = NewGameDialog.create(shell).open();
+            	
+            	for (GameView gv : theNewGame.keySet()) {
+					createGameView(gv, theNewGame.get(gv));
+				}
+            	
+            }
+        });
+        
+        new MenuItem(fileMenu, SWT.SEPARATOR);
+        
+        /*
+         * exit menu item
+         */
         MenuItem exitItem = new MenuItem(fileMenu, SWT.PUSH);
         exitItem.setText(I18N.getString("Exit"));
 
@@ -145,19 +182,30 @@ public class MainWindow {
             }
         });
         
-        MenuItem newGame = new MenuItem(fileMenu, SWT.PUSH);
-        newGame.setText(I18N.getString("newGame"));
-        
-        newGame.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent e) {
-                NewGameDialog.create(shell).open();
-            }
-        });
-        
         shell.setMenuBar(menuBar);
         
         shell.pack();
+	}
+
+	protected void createGameView(GameView gv, List<GameParameter<?>> list) {
+		clearRootPanel();
+		
+		currentContentView = gv.initialize(rootPanel, SWT.NONE, list);
+		rootPanel.pack();
+	}
+
+	private void createWelcomePanel() {
+		clearRootPanel();
+		
+		currentContentView = new WelcomeView(rootPanel, SWT.NONE);
+		rootPanel.pack();
+		shell.pack();
+	}
+
+	private void clearRootPanel() {
+		if (currentContentView != null) {
+			currentContentView.dispose();
+		}		
 	}
 
 	private void appendKeyListeners() {

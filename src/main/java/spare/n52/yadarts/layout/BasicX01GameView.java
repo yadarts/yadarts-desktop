@@ -22,6 +22,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Image;
@@ -91,7 +93,7 @@ public abstract class BasicX01GameView implements
 	}
 	
 	@Override
-	public void initialize(Composite parent, int style, List<GameParameter<?>> inputValues) {
+	public Composite initialize(Composite parent, int style, List<GameParameter<?>> inputValues) {
 		this.players = resolvePlayers(inputValues);
 		if (this.players == null) {
 			throw new IllegalStateException("No players found!");
@@ -100,6 +102,22 @@ public abstract class BasicX01GameView implements
 		this.targetScore = getDesiredTargetScore();
 		
 		this.wrapper = new Composite(parent, style);
+		this.wrapper.layout();
+		this.wrapper.addDisposeListener(new DisposeListener() {
+			@Override
+			public void widgetDisposed(DisposeEvent e) {
+				if (x01Game != null) {
+					try {
+						EventEngine engine = EventEngine.instance();
+						engine.shutdown();
+						engine.removeListener(x01Game);
+					} catch (InitializationException e1) {
+						logger.warn(e1.getMessage(), e1);
+					}
+					
+				}
+			}
+		});
 		
 		try {
 			this.background = Theme.getCurrentTheme().getBackground(wrapper.getDisplay());
@@ -120,13 +138,19 @@ public abstract class BasicX01GameView implements
 
 		initSecondRow(wrapper);
 
+		wrapper.layout();
 		wrapper.pack();
-
+		wrapper.setSize(parent.getSize());
+		wrapper.layout();
+		wrapper.pack();
+		
 		try {
 			startGame();
 		} catch (InitializationException | AlreadyRunningException e) {
 			logger.warn(e.getMessage(), e);
 		}
+		
+		return this.wrapper;
 	}
 
 
@@ -204,13 +228,13 @@ public abstract class BasicX01GameView implements
 				return rightBarContainer;
 			}
 		};
+		
 		FormData rightBarData = new FormData();
 		rightBarData.top = new FormAttachment(0);
 		rightBarData.left = new FormAttachment(theBoard);
 		rightBarData.right = new FormAttachment(100);
 		rightBarData.bottom = new FormAttachment(80);
 		rightBar.setLayoutData(rightBarData);
-
 
 	}
 
