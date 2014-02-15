@@ -17,16 +17,24 @@
 package spare.n52.yadarts.layout;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Stack;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Dialog;
@@ -37,27 +45,44 @@ import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.Text;
 
 import spare.n52.yadarts.i18n.I18N;
+import spare.n52.yadarts.layout.GameParameter.Bounds;
 
+/**
+ * A sophisticated dialog class that dynamically creates
+ * UI input fields based on the required parameters of the
+ * available games (see {@link GameView.AvailableGames})
+ */
 public class NewGameDialog extends Dialog {
 
 	private Shell shell;
 	private Combo comboDropDown;
 	private List<GameView> availableGames;
-	private Composite gameSpecificArea;
-	private StackLayout gameSpecificAreaLayout = new StackLayout();
-	private List<Composite> gameLayouts = new ArrayList<>();
-	private List<GameParameter<?>> result;
+	private Composite gameSpecificAreaStack;
+	private StackLayout gameSpecificAreaStackLayout = new StackLayout();
+	private Map<GameView, List<GameParameter<?>>> result;
+	private List<GameLayout> gameLayouts = new ArrayList<>();
+	protected GameLayout currentLayout;
 
 	public static NewGameDialog create(Shell shell) {
 		return new NewGameDialog(shell);
 	}
 
-	public NewGameDialog(Shell parent) {
+	private NewGameDialog(Shell parent) {
 		super(parent);
 		availableGames = GameView.AvailableGames.get();
 	}
 
-	public List<GameParameter<?>> open() {
+	/**
+	 * Creates a singleton map of {@link GameView} and
+	 * compatible {@link GameParameter}s. The params
+	 * are filled via the values of the dialogs UI.
+	 * the resulting {@link GameView} shalled be
+	 * {@link GameView#initialize(Composite, int, List)} with
+	 * the provided list of {@link GameParameter}
+	 * 
+	 * @return a singleton map of {@link GameView} and compatible {@link GameParameter}s.
+	 */
+	public Map<GameView, List<GameParameter<?>>> open() {
 		createContents();
 		shell.open();
 		shell.layout();
@@ -75,88 +100,73 @@ public class NewGameDialog extends Dialog {
 	protected void createContents() {
 		shell = new Shell(getParent(), SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
 		shell.setText(I18N.getString("newGame"));
+		shell.setSize(600, 400);
 		
-	    shell.setLayout(new FillLayout());
+		GridLayout rl = new GridLayout(1, true);
+		shell.setLayout(rl);
 
-		comboDropDown = new Combo(shell, SWT.READ_ONLY);
+		/*
+		 * which game?
+		 */
+		Composite comboDropDownRow = new Composite(shell, SWT.NONE);
+		comboDropDownRow.setLayout(new RowLayout(SWT.HORIZONTAL));
+		comboDropDownRow.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false));
+		
+		new Label(comboDropDownRow, SWT.NONE).setText(I18N.getString("selectGame").concat(":"));
+		
+		comboDropDown = new Combo(comboDropDownRow, SWT.READ_ONLY);
 		comboDropDown.setItems(createItems());
-		comboDropDown.addSelectionListener(new DropdownSelectionListener());
-		
-		gameSpecificArea = new Composite(shell, SWT.BORDER);
-		gameSpecificArea.setLayout(gameSpecificAreaLayout);
-		
-		Composite empty = new Composite(gameSpecificArea, SWT.NONE);
-		empty.setLayout(new FillLayout());
-		empty.pack();
-		
-		for (GameView gv : availableGames) {
-			gameLayouts.add(createGameLayout(gv));
-		}
-		
-		gameSpecificAreaLayout.topControl = empty;
-		
-		shell.open();
-	}
+		comboDropDown.addSelectionListener(new SelectionAdapter() {
 
-	private Composite createGameLayout(GameView gv) {
-		Composite container = new Composite(gameSpecificArea, SWT.NONE);
-		container.setLayout(new RowLayout(SWT.VERTICAL));
-		
-		new Label(container, SWT.NONE).setText(I18N.getString("newGame") +": "+ gv.getGameName());
-		
-		this.result = gv.getInputParameters();
-		createInputFields(container, this.result);
-		
-		container.pack();
-		return container;
-	}
-
-	private void createInputFields(final Composite container,
-			List<GameParameter<?>> inputParameters) {
-		for (GameParameter<?> gameParameter : inputParameters) {
-			if (gameParameter.getBounds().getMax() > 1) {
-				
-				final List<Object> currentParameterValue = new ArrayList<>();
-				
-				final Composite inputField = new Composite(container, SWT.NONE);
-				inputField.setLayout(new RowLayout(SWT.HORIZONTAL));
-				new Label(inputField, SWT.NONE).setText(I18N.getString("numberOf")+ " "+
-							I18N.getString(gameParameter.getName()));
-				final Spinner boundsSpinner = new Spinner(inputField, SWT.NONE);
-				boundsSpinner.setMinimum(gameParameter.getBounds().getMin());
-				boundsSpinner.setMaximum(gameParameter.getBounds().getMax());
-				boundsSpinner.addModifyListener(new ModifyListener() {
-					
-					@Override
-					public void modifyText(ModifyEvent e) {
-						int newCount = Integer.parseInt(boundsSpinner.getText());
-						
-						if (currentParameterValue.size() < newCount) {
-							addNewInputRow(container);
-						}
-						else {
-							removeLastInputRow();
-						}
-					}
-
-					private void removeLastInputRow() {
-						// TODO Auto-generated method stub
-						
-					}
-
-					private void addNewInputRow(Composite parent) {
-						Text in = new Text(parent, SWT.SINGLE);
-						currentParameterValue.add(in);
-						parent.layout();
-						parent.pack();
-						parent.redraw();
-					}
-					
-				});
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				super.widgetSelected(e);
+				currentLayout = gameLayouts.get(comboDropDown.getSelectionIndex());
+				gameSpecificAreaStackLayout.topControl = currentLayout;
+				gameSpecificAreaStack.layout();
 			}
-			new Label(container, SWT.NONE).setText(I18N.getString(gameParameter.getName()));
+			
+		});
+		
+		/*
+		 * stack layout for each game area
+		 */
+		
+		gameSpecificAreaStack = new Composite(shell, SWT.BORDER);
+		gameSpecificAreaStack.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		gameSpecificAreaStack.setLayout(gameSpecificAreaStackLayout);
+		
+		Composite empty = new Composite(gameSpecificAreaStack, SWT.NONE);
+		empty.setLayout(new FillLayout());
+		
+		/*
+		 * create an area for each available game
+		 */
+		for (GameView gv : availableGames) {
+			gameLayouts.add(new GameLayout(gv, gameSpecificAreaStack));
 		}
+		
+		gameSpecificAreaStackLayout.topControl = empty;
+		
+		/*
+		 * ok button
+		 */
+		Button okButton = new Button(shell, SWT.PUSH);
+		okButton.setText(I18N.getString("start"));
+		okButton.setLayoutData(new GridData(SWT.RIGHT, SWT.BOTTOM, false, false));
+		okButton.addSelectionListener(new SelectionAdapter() {
+			
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				super.widgetSelected(e);
+				List<GameParameter<?>> params = currentLayout.computeFilledParameters();
+				result = Collections.singletonMap(currentLayout.game, params);
+				shell.dispose();
+			}
+			
+		});
 	}
+
 
 	private String[] createItems() {
 		String[] array = new String[availableGames.size()];
@@ -169,20 +179,216 @@ public class NewGameDialog extends Dialog {
 		return array;
 	}
 
-	public void updateGameSpecificArea(int selectionIndex) {
-		gameSpecificAreaLayout.topControl = gameLayouts.get(selectionIndex);
-		gameSpecificArea.layout();
-	}
-	
-	class DropdownSelectionListener extends SelectionAdapter {
+	/**
+	 * This class creates a UI for paramter input
+	 * based on the defined {@link GameParameter}s of the
+	 * {@link GameView}.
+	 */
+	private static class GameLayout extends Composite {
 
-		@Override
-		public void widgetSelected(SelectionEvent e) {
-			super.widgetSelected(e);
-			updateGameSpecificArea(comboDropDown.getSelectionIndex());
+		private GameView game;
+		private Map<GameParameter<?>, Stack<Text>> parameterInputs = new HashMap<>();
+		private ScrolledComposite scrollView;
+
+		public GameLayout(GameView gv, Composite parent) {
+			super(parent, SWT.NONE);
+			this.game = gv;
+			
+			this.setLayout(new FillLayout());
+
+			/*
+			 * this scrollView is updated when the UI changes
+			 * dynamically
+			 */
+			scrollView = new ScrolledComposite(this, SWT.H_SCROLL
+					| SWT.V_SCROLL | SWT.BORDER);
+			scrollView.setExpandHorizontal(true);
+			scrollView.setExpandVertical(true);
+			
+			/*
+			 * the contentContainer is the root Composite of this game view.
+			 * it is a child of scrollView to enable scrolling.
+			 */
+			final Composite contentContainer = new Composite(scrollView, SWT.NONE);
+			scrollView.setContent(contentContainer);
+
+			GridLayout layout = new GridLayout();
+			layout.numColumns = 1;
+			contentContainer.setLayout(layout);
+			
+			/*
+			 * define a nice headline
+			 */
+			new Label(contentContainer, SWT.NONE).setText(I18N.getString("newGame").concat(": ").concat(this.game.getGameName()));
+			
+			for (final GameParameter<?> param : this.game.getInputParameters()) {
+				createParameterView(param, contentContainer);
+			}
+			
+			/*
+			 * initially compute the min size so the scroll bars are rendered
+			 * when required
+			 */
+			scrollView.setMinSize(contentContainer.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+		}
+
+		/**
+		 * creates an input area based on the provided {@link GameParameter} and
+		 * its {@link Bounds}.
+		 * 
+		 * @param param the input parameter
+		 * @param contentContainer the parent Composite
+		 */
+		private void createParameterView(final GameParameter<?> param, final Composite contentContainer) {
+			if (param.getBounds().getMin() != param.getBounds().getMax()) {
+				createParameterViewWithSpinner(param, contentContainer);
+			}
+			else {
+				createStaticParameterView(param, contentContainer);
+			}
+		}
+
+		/**
+		 * creates a parameter input view where the bounds are 
+		 * static. No dynamic including of additional fields
+		 * is required here. 
+		 * 
+		 * @param param the game parameter
+		 * @param contentContainer the parent Composite
+		 */
+		private void createStaticParameterView(final GameParameter<?> param,
+				final Composite contentContainer) {
+			new Label(contentContainer, SWT.NONE).setText(I18N.getString(param.getName()));
+			
+			parameterInputs.put(param, new Stack<Text>());
+
+			final Composite parameterList = new Composite(contentContainer, SWT.NONE);
+			parameterList.setLayout(new GridLayout(1, true));
+			parameterList.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+			
+			for (int i = 0; i < param.getBounds().getMax(); i++) {
+				addParameterInput(parameterList, param);	
+			}
+			
+		}
+
+		/**
+		 * creates a parameter input view where the bounds are 
+		 * dynamic. A spinner is used to define the amount
+		 * of input fields. 
+		 * 
+		 * @param param the game parameter
+		 * @param contentContainer the parent Composite
+		 */
+		private void createParameterViewWithSpinner(final GameParameter<?> param,
+				final Composite contentContainer) {
+			parameterInputs.put(param, new Stack<Text>());
+			
+			Composite spinnerContainer = new Composite(contentContainer, SWT.NONE);
+			spinnerContainer.setLayout(new RowLayout());
+			new Label(spinnerContainer, SWT.NONE).setText(I18N.getString(param.getName()));
+			
+			final Spinner spinner = new Spinner(spinnerContainer, SWT.READ_ONLY);
+			spinner.setMaximum(param.getBounds().getMax());
+			spinner.setMinimum(param.getBounds().getMin());
+			
+			final Composite parameterList = new Composite(contentContainer, SWT.NONE);
+			parameterList.setLayout(new GridLayout(1, true));
+			parameterList.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+			
+			spinner.addModifyListener(new ModifyListener() {
+				@Override
+				public void modifyText(ModifyEvent e) {
+					int count = Integer.parseInt(spinner.getText());
+					
+					if (count > parameterInputs.get(param).size()) {
+						/*
+						 * change the stack top child. call 
+						 * layout() on the stack's component
+						 */
+						addParameterInput(parameterList, param);	
+					}
+					else {
+						removeLastParameterInput(parameterList, param);
+					}
+
+					/*
+					 * updated the size of the scrollView as the contents
+					 * have changed!
+					 */
+					scrollView.setMinSize(contentContainer.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+					contentContainer.layout();
+				}
+			});
+			
+			for (int i = 0; i < param.getBounds().getMin(); i++) {
+				addParameterInput(parameterList, param);	
+			}
+		}
+
+		/**
+		 * add a single input field and store it in {@link #parameterInputs}
+		 * 
+		 * @param parameterListContainer the parent
+		 * @param param the defining game parameter
+		 */
+		protected void addParameterInput(Composite parameterListContainer, GameParameter<?> param) {
+			Text textInput = new Text(parameterListContainer, SWT.BORDER);
+			textInput.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+			textInput.setSize(120, 32);
+			this.parameterInputs.get(param).push(textInput);
+		}
+
+		/**
+		 * remove the last input field that has been added (both from the view
+		 * and {@link #parameterInputs})
+		 * 
+		 * @param parameterListContainer the parent
+		 * @param param the defining game parameter
+		 */
+		protected void removeLastParameterInput(Composite parameterListContainer, GameParameter<?> param) {
+			Text toRemove = this.parameterInputs.get(param).pop();
+			toRemove.dispose();
+		}
+
+		/**
+		 * @return the filled list of {@link GameParameter}s. the contents
+		 * are read from the UI input fields
+		 */
+		public List<GameParameter<?>> computeFilledParameters() {
+			List<GameParameter<?>> list = new ArrayList<>();
+			
+			for (GameParameter<?> gameParameter : this.parameterInputs.keySet()) {
+				list.add(computeParameterValues(gameParameter, this.parameterInputs.get(gameParameter)));
+			}
+			
+			return list;
+		}
+
+		private GameParameter<?> computeParameterValues(
+				GameParameter<?> gameParameter, Stack<Text> inputFields) {
+			/*
+			 * TODO implement other datatypes. currently only String
+			 */
+			
+			if (gameParameter.getType().isAssignableFrom(String.class)) {
+				computeStringParameterValues(gameParameter, inputFields);	
+			}
+			
+			return gameParameter;
+		}
+
+		protected void computeStringParameterValues(
+				GameParameter<?> gameParameter, Stack<Text> inputFields) {
+			GameParameter<String> sp = (GameParameter<String>) gameParameter;
+			List<String> valueList = new ArrayList<>(inputFields.size());
+			for (Text text : inputFields) {
+				valueList.add(text.getText().trim());
+			}
+			
+			sp.setValue(valueList);
 		}
 		
 	}
-
 
 }

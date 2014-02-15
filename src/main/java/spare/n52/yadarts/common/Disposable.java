@@ -14,18 +14,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package spare.n52.yadarts.sound;
+package spare.n52.yadarts.common;
 
 import java.util.ServiceLoader;
 
-import spare.n52.yadarts.common.Disposable;
-import spare.n52.yadarts.games.GameStatusUpdateListener;
-
 /**
- * This is an interface for sound service systems.
- * It is used with {@link ServiceLoader} to discover available
- * implementations.
+ * A class implementing this interface can use the {@link #shutdown()}
+ * method to free resources.
+ * 
+ * {@link Services#shutdownDisposables()} uses this interface to shutdown
+ * created instances of {@link ServiceLoader} enabled interfaces.
  */
-public interface SoundService extends GameStatusUpdateListener, Disposable {
+public interface Disposable {
 
+	public void shutdown();
+	
 }

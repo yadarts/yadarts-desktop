@@ -22,11 +22,14 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.sound.sampled.LineEvent;
 import javax.sound.sampled.LineEvent.Type;
 import javax.sound.sampled.LineListener;
 
+import spare.n52.yadarts.common.Services;
 import spare.n52.yadarts.config.Configuration;
 import spare.n52.yadarts.entity.Player;
 import spare.n52.yadarts.entity.PointEvent;
@@ -39,7 +42,17 @@ public class BasicSoundService implements SoundService, LineListener {
 	public static final String SOUND_THEME = "SOUND_THEME";
 
 	public BasicSoundService() {
-		executor = Executors.newFixedThreadPool(5);
+		executor = Executors.newFixedThreadPool(3, new ThreadFactory() {
+			
+			private AtomicInteger count = new AtomicInteger();
+
+			@Override
+			public Thread newThread(Runnable r) {
+				Thread t = new Thread(r);
+				t.setName(BasicSoundService.class.getSimpleName().concat("-executor-").concat(count.toString()));
+				return t;
+			}
+		});
 		soundIdQueueQueue = new LinkedList<SoundId>();
 	}
 
@@ -65,7 +78,7 @@ public class BasicSoundService implements SoundService, LineListener {
 	}
 
 	private String getSoundPackageName(){
-		return Configuration.Instance.instance().getSoundPackage();
+		return Services.getImplementation(Configuration.class).getSoundPackage();
 	}
 
 	protected void queueSound(final SoundId id) {
@@ -185,6 +198,13 @@ public class BasicSoundService implements SoundService, LineListener {
 			playNextSound();
 		}
 
+	}
+
+	@Override
+	public void shutdown() {
+		if (this.executor != null) {
+			this.executor.shutdown();
+		}
 	}
 
 }

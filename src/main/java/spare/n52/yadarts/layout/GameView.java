@@ -46,11 +46,15 @@ public interface GameView {
 	 * its UI. The parent is provided and shall be used
 	 * to create the SWT components.
 	 * 
+	 * An implementation MUST return its root Composite
+	 * (= the one and only direct child of parent)
+	 * 
 	 * @param parent the SWT parent
 	 * @param style the SWT style, used as required
 	 * @param inputValues the filled values of {@link #getInputParameters()}
+	 * @return the root Composite of the view
 	 */
-	void initialize(Composite parent, int style,
+	public Composite initialize(Composite parent, int style,
 			 List<GameParameter<?>> inputValues);
 	
 	public static class AvailableGames {

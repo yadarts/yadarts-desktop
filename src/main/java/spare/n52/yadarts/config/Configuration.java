@@ -16,10 +16,6 @@
  */
 package spare.n52.yadarts.config;
 
-import java.util.ServiceLoader;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public interface Configuration {
 
@@ -45,37 +41,6 @@ public interface Configuration {
 	 */
 	public void storeCallerTimeout(int to);
 	
-	/**
-	 * The static class for getting the Configuration instance
-	 */
-	public static class Instance {
-		
-		private static final Logger logger = LoggerFactory.getLogger(Instance.class);
-		private static Configuration instance;
-
-		static {
-			try {
-				ServiceLoader<Configuration> l = ServiceLoader.load(Configuration.class);
-				
-				for (Configuration configuration : l) {
-					instance = configuration;
-					break;
-				}
-			}
-			catch (RuntimeException e) {
-				logger.warn(e.getMessage(), e);
-			}
-		}
-		
-		public static Configuration instance() {
-			if (instance == null) {
-				throw new IllegalStateException("No configuration available!");
-			}
-			
-			return instance;
-		}
-		
-	}
 
 	/**
 	 * @return the name of the sound package. Should match the name of the sub folder in "sounds".

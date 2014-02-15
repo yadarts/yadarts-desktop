@@ -17,18 +17,15 @@
 package spare.n52.yadarts.persistence;
 
 import java.util.List;
-import java.util.ServiceLoader;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import spare.n52.yadarts.common.Disposable;
 import spare.n52.yadarts.games.Game;
 import spare.n52.yadarts.games.Score;
 
 /**
  * Interface for the highscore peristency mechanism
  */
-public interface HighscorePersistence {
+public interface HighscorePersistence extends Disposable {
 
 	/**
 	 * add a {@link Score} to the highscore for a specific {@link Game}
@@ -49,38 +46,14 @@ public interface HighscorePersistence {
 	 * @throws PersistencyException
 	 */
 	public List<Score> getHighscore(Class<? extends Game> theGame) throws PersistencyException;
-	
+
 	/**
-	 * The static class for getting the HighscorePersistence instance
+	 * An implementation shall return all supported implementations
+	 * of {@link Game}.
+	 * 
+	 * @return the list of supported {@link Game} implementations
 	 */
-	public static class Instance {
-		
-		private static final Logger logger = LoggerFactory.getLogger(Instance.class);
-		private static HighscorePersistence instance;
-
-		static {
-			try {
-				ServiceLoader<HighscorePersistence> l = ServiceLoader.load(HighscorePersistence.class);
-				
-				for (HighscorePersistence configuration : l) {
-					instance = configuration;
-					break;
-				}
-			}
-			catch (RuntimeException e) {
-				logger.warn(e.getMessage(), e);
-			}
-		}
-		
-		public static HighscorePersistence instance() {
-			if (instance == null) {
-				throw new IllegalStateException("No persistence available!");
-			}
-			
-			return instance;
-		}
-		
-	}
-
+	List<Class<? extends Game>> getSupportedGameTypes();
+	
 
 }
