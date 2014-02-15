@@ -23,6 +23,8 @@ import java.util.Map;
 import java.util.Stack;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Image;
@@ -42,6 +44,7 @@ import org.slf4j.LoggerFactory;
 import spare.n52.yadarts.AlreadyRunningException;
 import spare.n52.yadarts.EventEngine;
 import spare.n52.yadarts.InitializationException;
+import spare.n52.yadarts.common.Services;
 import spare.n52.yadarts.entity.Player;
 import spare.n52.yadarts.entity.PointEvent;
 import spare.n52.yadarts.entity.impl.PlayerImpl;
@@ -53,7 +56,7 @@ import spare.n52.yadarts.layout.GameParameter.Bounds;
 import spare.n52.yadarts.layout.board.BoardView;
 import spare.n52.yadarts.persistence.HighscorePersistence;
 import spare.n52.yadarts.persistence.PersistencyException;
-import spare.n52.yadarts.sound.BasicSoundService;
+import spare.n52.yadarts.sound.SoundService;
 import spare.n52.yadarts.themes.BorderedControlContainer;
 import spare.n52.yadarts.themes.Theme;
 
@@ -99,21 +102,37 @@ public abstract class BasicX01GameView implements
 	
 	@Override
 	public List<GameParameter<?>> getInputParameters() {
-		final List<GameParameter<?>> result = new ArrayList<>();
+		List<GameParameter<?>> result = new ArrayList<>();
 		result.add(new GameParameter<String>(String.class, PLAYERS_PARAMETER, Bounds.unbound(2)));
 		return result;
 	}
 	
 	@Override
-	public void initialize(final Composite parent, final int style, final List<GameParameter<?>> inputValues) {
-		players = resolvePlayers(inputValues);
-		if (players == null) {
+	public Composite initialize(Composite parent, int style, List<GameParameter<?>> inputValues) {
+		this.players = resolvePlayers(inputValues);
+		if (this.players == null) {
 			throw new IllegalStateException("No players found!");
 		}
 		
-		targetScore = getDesiredTargetScore();
+		this.targetScore = getDesiredTargetScore();
 		
-		wrapper = new Composite(parent, style);
+		this.wrapper = new Composite(parent, style);
+		this.wrapper.layout();
+		this.wrapper.addDisposeListener(new DisposeListener() {
+			@Override
+			public void widgetDisposed(DisposeEvent e) {
+				if (x01Game != null) {
+					try {
+						EventEngine engine = EventEngine.instance();
+						engine.shutdown();
+						engine.removeListener(x01Game);
+					} catch (InitializationException e1) {
+						logger.warn(e1.getMessage(), e1);
+					}
+					
+				}
+			}
+		});
 		
 		try {
 			background = Theme.getCurrentTheme().getBackground(wrapper.getDisplay());
@@ -124,7 +143,7 @@ public abstract class BasicX01GameView implements
 		
 		wrapper.setBackgroundImage(background);
 		
-		final FormLayout formLayout = new FormLayout();
+		FormLayout formLayout = new FormLayout();
 		formLayout.marginHeight = 0;
 		formLayout.marginWidth = 0;
 		formLayout.spacing = 0;
@@ -134,6 +153,10 @@ public abstract class BasicX01GameView implements
 
 		initSecondRow(wrapper);
 
+		wrapper.layout();
+		wrapper.pack();
+		wrapper.setSize(parent.getSize());
+		wrapper.layout();
 		wrapper.pack();
 		
 		currentPlayer.setText(players.get(0).getName());
@@ -143,18 +166,20 @@ public abstract class BasicX01GameView implements
 		} catch (InitializationException | AlreadyRunningException e) {
 			logger.warn(e.getMessage(), e);
 		}
+		
+		return this.wrapper;
 	}
 
 
-	private List<Player> resolvePlayers(final List<GameParameter<?>> inputValues) {
-		for (final GameParameter<?> gameParameter : inputValues) {
+	private List<Player> resolvePlayers(List<GameParameter<?>> inputValues) {
+		for (GameParameter<?> gameParameter : inputValues) {
 			switch (gameParameter.getName()) {
 			case PLAYERS_PARAMETER:
-				final List<Player> result = new ArrayList<>();
+				List<Player> result = new ArrayList<>();
 				
-				final Object value = gameParameter.getValue();
+				Object value = gameParameter.getValue();
 
-				for (final String player : (List<String>) value) {
+				for (String player : (List<String>) value) {
 					result.add(new PlayerImpl(player));
 				}
 				
@@ -168,14 +193,14 @@ public abstract class BasicX01GameView implements
 
 	private void startGame() throws InitializationException,
 			AlreadyRunningException {
-		final EventEngine engine = EventEngine.instance();
+		EventEngine engine = EventEngine.instance();
 		x01Game = GenericX01Game.create(players, targetScore);
 		x01Game.registerGameListener(this);
 		
 		/*
 		 * TODO: check Configuration for existing SoundService 
 		 */
-		x01Game.registerGameListener(new BasicSoundService());
+		x01Game.registerGameListener(Services.getImplementation(SoundService.class));
 		engine.registerListener(x01Game);
 		engine.start();
 	}
@@ -184,7 +209,7 @@ public abstract class BasicX01GameView implements
 		createLeftBar(container);
 
 		theBoard = new BoardView(container, SWT.NONE);
-		final FormData theBoardData = new FormData();
+		FormData theBoardData = new FormData();
 		theBoardData.top = new FormAttachment(0);
 		theBoardData.left = new FormAttachment(leftBar);
 		theBoardData.right = new FormAttachment(80);
@@ -197,13 +222,13 @@ public abstract class BasicX01GameView implements
 
 	private void createRightBar(final Composite container) {
 		rightBar = new BorderedControlContainer(container, SWT.NONE) {
-
+			
 			@Override
-			protected Control createContents(final Composite parent) {
-				final Composite rightBarContainer = new Composite(parent, SWT.NONE);
+			protected Control createContents(Composite parent) {
+				Composite rightBarContainer = new Composite(parent, SWT.NONE);
 				rightBarContainer.setBackgroundMode(SWT.INHERIT_FORCE);
 				
-				final RowLayout leftBarLayout = new RowLayout(SWT.VERTICAL);
+				RowLayout leftBarLayout = new RowLayout(SWT.VERTICAL);
 				leftBarLayout.spacing = 5;
 				rightBarContainer.setLayout(leftBarLayout);
 				
@@ -238,25 +263,25 @@ public abstract class BasicX01GameView implements
 				return rightBarContainer;
 			}
 		};
-		final FormData rightBarData = new FormData();
+		
+		FormData rightBarData = new FormData();
 		rightBarData.top = new FormAttachment(0);
 		rightBarData.left = new FormAttachment(theBoard);
 		rightBarData.right = new FormAttachment(100);
 		rightBarData.bottom = new FormAttachment(80);
 		rightBar.setLayoutData(rightBarData);
 
-
 	}
 
-	private void createLeftBar(final Composite container) {
+	private void createLeftBar(Composite container) {
 		leftBar = new BorderedControlContainer(container, SWT.NONE) {
 			
 			@Override
-			protected Control createContents(final Composite parent) {
-				final Composite leftBarContainer = new Composite(parent, SWT.NONE);
+			protected Control createContents(Composite parent) {
+				Composite leftBarContainer = new Composite(parent, SWT.NONE);
 				leftBarContainer.setBackgroundMode(SWT.INHERIT_FORCE);
 				
-				final GridLayout leftBarLayout = new GridLayout(1, true);
+				GridLayout leftBarLayout = new GridLayout(1, true);
 				leftBarContainer.setLayout(leftBarLayout);
 				
 				new Label(leftBarContainer, SWT.UNDERLINE_SINGLE).setText(I18N.getString("currentRound").concat(":"));
@@ -273,7 +298,7 @@ public abstract class BasicX01GameView implements
 				return leftBarContainer;
 			}
 		};
-		final FormData leftBarData = new FormData();
+		FormData leftBarData = new FormData();
 		leftBarData.top = new FormAttachment(0);
 		leftBarData.left = new FormAttachment(0);
 		leftBarData.right = new FormAttachment(20);
@@ -281,12 +306,12 @@ public abstract class BasicX01GameView implements
 		leftBar.setLayoutData(leftBarData);
 	}
 
-	private void initSecondRow(final Composite container) {
+	private void initSecondRow(Composite container) {
 		bottomBar = new BorderedControlContainer(container, SWT.NONE) {
 			
 			@Override
-			protected Control createContents(final Composite parent) {
-				final Composite bottomBarContainer = new Composite(parent, SWT.NONE);
+			protected Control createContents(Composite parent) {
+				Composite bottomBarContainer = new Composite(parent, SWT.NONE);
 				bottomBarContainer.setLayout(new FillLayout());
 				bottomBarContainer.setBackgroundMode(SWT.INHERIT_FORCE);
 				statusBar = new Label(bottomBarContainer, SWT.NONE);
@@ -296,7 +321,7 @@ public abstract class BasicX01GameView implements
 			}
 		};
 		
-		final FormData leftBarData = new FormData();
+		FormData leftBarData = new FormData();
 		leftBarData.top = new FormAttachment(leftBar);
 		leftBarData.left = new FormAttachment(0);
 		leftBarData.right = new FormAttachment(100);
@@ -369,7 +394,7 @@ public abstract class BasicX01GameView implements
 	}
 
 	@Override
-	public void onRoundStarted(final int rounds) {
+	public void onRoundStarted(int rounds) {
 		logger.info("+++++++++++++++++++");
 		logger.info("Round {} started!", rounds);
 		logger.info("+++++++++++++++++++");
@@ -379,7 +404,7 @@ public abstract class BasicX01GameView implements
 
 	@Override
 	public void onFinishingCombination(
-			final List<List<PointEvent>> finishingCombinations) {
+			List<List<PointEvent>> finishingCombinations) {
 		logger.info("Player can finished with the following combinations:");
 
 		if (finishingCombinations == null) {
@@ -387,9 +412,9 @@ public abstract class BasicX01GameView implements
 		}
 
 		StringBuilder sb;
-		for (final List<PointEvent> list : finishingCombinations) {
+		for (List<PointEvent> list : finishingCombinations) {
 			sb = new StringBuilder();
-			for (final PointEvent pe : list) {
+			for (PointEvent pe : list) {
 				sb.append(pe);
 				sb.append(" + ");
 			}
@@ -401,7 +426,7 @@ public abstract class BasicX01GameView implements
 	}
 
 	@Override
-	public void onTurnFinished(final Player finishedPlayer, final Score remainingScore) {
+	public void onTurnFinished(Player finishedPlayer, Score remainingScore) {
 		logger.info("Player {} finished the turn. Remaining points: {}",
 				finishedPlayer, remainingScore.getTotalScore());
 		updateLabel(statusBar, String.format(
@@ -410,7 +435,7 @@ public abstract class BasicX01GameView implements
 	}
 
 	@Override
-	public void onRemainingScoreForPlayer(final Player currentPlayer, final Score remainingScore) {
+	public void onRemainingScoreForPlayer(Player currentPlayer, Score remainingScore) {
 		logger.info("Player {}'s remaining points: {}", currentPlayer,
 				remainingScore.getTotalScore());
 		updateLabel(currentScore, Integer.toString(remainingScore.getTotalScore()));
@@ -424,24 +449,25 @@ public abstract class BasicX01GameView implements
 	}
 
 	@Override
-	public void onPlayerFinished(final Player currentPlayer) {
+	public void onPlayerFinished(Player currentPlayer) {
 		logger.info("Player {} finished!!!!!!! You are a Dart god!",
 				currentPlayer);
 		updateLabel(statusBar, String.format(I18N.getString("playerFinished"), currentPlayer.getName()));
 	}
 
 	@Override
-	public void onGameFinished(final Map<Player, Score> playerScoreMap, final List<Player> winner) {
+	public void onGameFinished(Map<Player, Score> playerScoreMap, List<Player> winner) {
 		logger.info("The game has ended!");
 
-		for (final Player player : playerScoreMap.keySet()) {
-			final Score score = playerScoreMap.get(player);
+		for (Player player : playerScoreMap.keySet()) {
+			Score score = playerScoreMap.get(player);
 			logger.info("{}: {}", player, score);
 			
 			if (score.getTotalScore() == 0) {
 				try {
-					HighscorePersistence.Instance.instance().addHighscoreEntry(x01Game.getClass(), score);
-				} catch (final PersistencyException e) {
+					Services.getImplementation(HighscorePersistence.class)
+							.addHighscoreEntry(x01Game.getClass(), score);
+				} catch (PersistencyException e) {
 					logger.warn(e.getMessage(), e);
 				}
 			}
@@ -451,7 +477,7 @@ public abstract class BasicX01GameView implements
 		
 		try {
 			EventEngine.instance().shutdown();
-		} catch (final InitializationException e) {
+		} catch (InitializationException e) {
 			logger.warn(e.getMessage(), e);
 		}
 	}

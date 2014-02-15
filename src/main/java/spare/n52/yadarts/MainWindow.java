@@ -17,9 +17,8 @@
 package spare.n52.yadarts;
 
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyAdapter;
@@ -28,6 +27,7 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
@@ -35,13 +35,14 @@ import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import spare.n52.yadarts.common.Services;
 import spare.n52.yadarts.config.Configuration;
 import spare.n52.yadarts.i18n.I18N;
-import spare.n52.yadarts.layout.BasicX01GameView;
 import spare.n52.yadarts.layout.GameParameter;
+import spare.n52.yadarts.layout.GameView;
+import spare.n52.yadarts.layout.HighscoreView;
 import spare.n52.yadarts.layout.NewGameDialog;
-import spare.n52.yadarts.layout.Three01GameView;
-import spare.n52.yadarts.layout.GameParameter.Bounds;
+import spare.n52.yadarts.layout.WelcomeView;
 import spare.n52.yadarts.themes.Theme;
 
 public class MainWindow {
@@ -49,23 +50,15 @@ public class MainWindow {
 	private static final Logger logger = LoggerFactory
 			.getLogger(MainWindow.class);
 	
-	private static List<String> thePlayers = Arrays.asList(new String[] {
-			"Simon", "Conny", "Daniel"
-	});
-
-	private static GameParameter<String> gp;
-	
-	static {
-		gp = new GameParameter<String>(String.class, BasicX01GameView.PLAYERS_PARAMETER, Bounds.unbound(2));
-		gp.setValue(thePlayers);
-	}
-	
 	private Shell shell;
 	private boolean fullscreen;
 
+	private Composite rootPanel;
+	private Composite currentContentView;
+
 	public MainWindow(Display display, MainWindowOpenedListener l) {
 		shell = new Shell(display);
-		this.fullscreen = Configuration.Instance.instance().isAutoFullScreen();
+		this.fullscreen = Services.getImplementation(Configuration.class).isAutoFullScreen();
 		
 		shell.setMinimumSize(800, 600);
 		shell.setText("yadarts desktop edition");
@@ -99,6 +92,8 @@ public class MainWindow {
 		} catch (InitializationException e) {
 			logger.warn(e.getMessage(), e);
 		}
+		
+		Services.shutdownDisposables();
 	}
 
 	private void resolvePriorWindowState() {
@@ -117,15 +112,17 @@ public class MainWindow {
 		} catch (FileNotFoundException e1) {
 			logger.warn(e1.getMessage(), e1);
 		}
-		
-		List<GameParameter<?>> gpList = new ArrayList<>();
-		gpList.add(gp);
-		new Three01GameView().initialize(shell, SWT.NONE, gpList);
-		
+
 		FillLayout layout = new FillLayout();
 		layout.marginHeight = 5;
 		layout.marginWidth = 5;
 		shell.setLayout(layout);
+		
+		rootPanel = new Composite(shell, SWT.NONE);
+		FillLayout glayout = new FillLayout();
+		rootPanel.setLayout(glayout);
+		
+		createWelcomePanel();
 
         Menu menuBar = new Menu(shell, SWT.BAR);
         MenuItem cascadeFileMenu = new MenuItem(menuBar, SWT.CASCADE);
@@ -134,6 +131,48 @@ public class MainWindow {
         Menu fileMenu = new Menu(shell, SWT.DROP_DOWN);
         cascadeFileMenu.setMenu(fileMenu);
 
+        /*
+         * new game menu item
+         */
+        MenuItem newGame = new MenuItem(fileMenu, SWT.PUSH);
+        newGame.setText(I18N.getString("newGame"));
+        
+        newGame.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+            	Map<GameView, List<GameParameter<?>>> theNewGame = NewGameDialog.create(shell).open();
+            	
+            	if (theNewGame != null && !theNewGame.isEmpty()) {
+
+            		for (GameView gv : theNewGame.keySet()) {
+    					createGameView(gv, theNewGame.get(gv));
+    				}
+            		
+            	}
+            	
+            }
+        });
+        
+        new MenuItem(fileMenu, SWT.SEPARATOR);
+        
+        /*
+         * highscore menu item
+         */
+        MenuItem highscore = new MenuItem(fileMenu, SWT.PUSH);
+        highscore.setText(I18N.getString("highscore"));
+        
+        highscore.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+            	createHighscoreView();
+            }
+        });
+        
+        new MenuItem(fileMenu, SWT.SEPARATOR);
+        
+        /*
+         * exit menu item
+         */
         MenuItem exitItem = new MenuItem(fileMenu, SWT.PUSH);
         exitItem.setText(I18N.getString("Exit"));
 
@@ -145,19 +184,38 @@ public class MainWindow {
             }
         });
         
-        MenuItem newGame = new MenuItem(fileMenu, SWT.PUSH);
-        newGame.setText(I18N.getString("newGame"));
-        
-        newGame.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent e) {
-                NewGameDialog.create(shell).open();
-            }
-        });
-        
         shell.setMenuBar(menuBar);
         
         shell.pack();
+	}
+
+	private void createGameView(GameView gv, List<GameParameter<?>> list) {
+		clearRootPanel();
+		
+		currentContentView = gv.initialize(rootPanel, SWT.NONE, list);
+		rootPanel.pack();
+	}
+	
+	private void createHighscoreView() {
+		clearRootPanel();
+		
+		currentContentView = new HighscoreView(rootPanel, SWT.NONE);
+		rootPanel.pack();
+		shell.pack();
+	}
+
+	private void createWelcomePanel() {
+		clearRootPanel();
+		
+		currentContentView = new WelcomeView(rootPanel, SWT.NONE);
+		rootPanel.pack();
+		shell.pack();
+	}
+
+	private void clearRootPanel() {
+		if (currentContentView != null) {
+			currentContentView.dispose();
+		}		
 	}
 
 	private void appendKeyListeners() {

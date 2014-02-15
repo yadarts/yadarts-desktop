@@ -16,6 +16,17 @@
  */
 package spare.n52.yadarts.layout;
 
-public class WelcomeView {
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
+
+public class WelcomeView extends Composite {
+
+	public WelcomeView(Composite parent, int style) {
+		super(parent, style);
+		this.setLayout(new FillLayout());
+		new Label(this, SWT.BORDER).setText("hi");
+	}
 
 }

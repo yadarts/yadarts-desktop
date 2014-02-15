@@ -14,18 +14,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package spare.n52.yadarts.sound;
+package spare.n52.yadarts.layout;
 
-import java.util.ServiceLoader;
 
-import spare.n52.yadarts.common.Disposable;
-import spare.n52.yadarts.games.GameStatusUpdateListener;
+public class Seven01GameView extends BasicX01GameView {
 
-/**
- * This is an interface for sound service systems.
- * It is used with {@link ServiceLoader} to discover available
- * implementations.
- */
-public interface SoundService extends GameStatusUpdateListener, Disposable {
+	@Override
+	public String getGameName() {
+		return "701";
+	}
+
+	@Override
+	protected int getDesiredTargetScore() {
+		return 701;
+	}
+
 
 }
