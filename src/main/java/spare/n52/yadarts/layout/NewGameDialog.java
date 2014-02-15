@@ -100,7 +100,7 @@ public class NewGameDialog extends Dialog {
 	protected void createContents() {
 		shell = new Shell(getParent(), SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
 		shell.setText(I18N.getString("newGame"));
-		shell.setSize(400, 300);
+		shell.setSize(600, 400);
 		
 		GridLayout rl = new GridLayout(1, true);
 		shell.setLayout(rl);

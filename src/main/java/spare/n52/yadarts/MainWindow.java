@@ -17,8 +17,6 @@
 package spare.n52.yadarts;
 
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -29,9 +27,6 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
-import org.eclipse.swt.layout.FormLayout;
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Menu;
@@ -42,29 +37,16 @@ import org.slf4j.LoggerFactory;
 
 import spare.n52.yadarts.config.Configuration;
 import spare.n52.yadarts.i18n.I18N;
-import spare.n52.yadarts.layout.BasicX01GameView;
 import spare.n52.yadarts.layout.GameParameter;
 import spare.n52.yadarts.layout.GameView;
 import spare.n52.yadarts.layout.NewGameDialog;
 import spare.n52.yadarts.layout.WelcomeView;
-import spare.n52.yadarts.layout.GameParameter.Bounds;
 import spare.n52.yadarts.themes.Theme;
 
 public class MainWindow {
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(MainWindow.class);
-	
-	private static List<String> thePlayers = Arrays.asList(new String[] {
-			"Simon", "Conny", "Daniel"
-	});
-
-	private static GameParameter<String> gp;
-	
-	static {
-		gp = new GameParameter<String>(String.class, BasicX01GameView.PLAYERS_PARAMETER, Bounds.unbound(2));
-		gp.setValue(thePlayers);
-	}
 	
 	private Shell shell;
 	private boolean fullscreen;
@@ -126,9 +108,6 @@ public class MainWindow {
 		} catch (FileNotFoundException e1) {
 			logger.warn(e1.getMessage(), e1);
 		}
-		
-		List<GameParameter<?>> gpList = new ArrayList<>();
-		gpList.add(gp);
 
 		FillLayout layout = new FillLayout();
 		layout.marginHeight = 5;
@@ -159,9 +138,13 @@ public class MainWindow {
             public void widgetSelected(SelectionEvent e) {
             	Map<GameView, List<GameParameter<?>>> theNewGame = NewGameDialog.create(shell).open();
             	
-            	for (GameView gv : theNewGame.keySet()) {
-					createGameView(gv, theNewGame.get(gv));
-				}
+            	if (theNewGame != null && !theNewGame.isEmpty()) {
+
+            		for (GameView gv : theNewGame.keySet()) {
+    					createGameView(gv, theNewGame.get(gv));
+    				}
+            		
+            	}
             	
             }
         });
