@@ -18,15 +18,25 @@ package spare.n52.yadarts.layout;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Stack;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.layout.FormAttachment;
+import org.eclipse.swt.layout.FormData;
+import org.eclipse.swt.layout.FormLayout;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Dialog;
@@ -47,6 +57,7 @@ public class NewGameDialog extends Dialog {
 	private StackLayout gameSpecificAreaLayout = new StackLayout();
 	private List<Composite> gameLayouts = new ArrayList<>();
 	private List<GameParameter<?>> result;
+	private ScrolledComposite sc;
 
 	public static NewGameDialog create(Shell shell) {
 		return new NewGameDialog(shell);
@@ -75,56 +86,139 @@ public class NewGameDialog extends Dialog {
 	protected void createContents() {
 		shell = new Shell(getParent(), SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
 		shell.setText(I18N.getString("newGame"));
+		shell.setSize(400, 300);
 		
-	    shell.setLayout(new FillLayout());
+		FormLayout gl = new FormLayout();
+		gl.spacing = 5;
+		shell.setLayout(gl);
 
-		comboDropDown = new Combo(shell, SWT.READ_ONLY);
+		/*
+		 * which game?
+		 */
+		Composite comboDropDownRow = new Composite(shell, SWT.NONE);
+		comboDropDownRow.setLayout(new RowLayout(SWT.HORIZONTAL));
+		FormData fd = new FormData();
+		fd.top = new FormAttachment(0);
+		fd.left = new FormAttachment(0);
+		comboDropDownRow.setLayoutData(fd);
+		
+		new Label(comboDropDownRow, SWT.NONE).setText(I18N.getString("selectGame").concat(":"));
+		
+		comboDropDown = new Combo(comboDropDownRow, SWT.READ_ONLY);
 		comboDropDown.setItems(createItems());
 		comboDropDown.addSelectionListener(new DropdownSelectionListener());
 		
+		/*
+		 * stack layout for each game area
+		 */
+		
 		gameSpecificArea = new Composite(shell, SWT.BORDER);
+		fd = new FormData();
+		fd.top = new FormAttachment(comboDropDownRow);
+		fd.left = new FormAttachment(0);
+		fd.right = new FormAttachment(100);
+		fd.bottom = new FormAttachment(90);
+		
+		gameSpecificArea.setLayoutData(fd);
 		gameSpecificArea.setLayout(gameSpecificAreaLayout);
 		
 		Composite empty = new Composite(gameSpecificArea, SWT.NONE);
 		empty.setLayout(new FillLayout());
 		empty.pack();
 		
+		/*
+		 * create an area for each available game
+		 */
 		for (GameView gv : availableGames) {
 			gameLayouts.add(createGameLayout(gv));
 		}
 		
 		gameSpecificAreaLayout.topControl = empty;
 		
+		/*
+		 * ok button
+		 */
+		Button okButton = new Button(shell, SWT.PUSH);
+		okButton.setText(I18N.getString("start"));
+		fd = new FormData();
+		fd.top = new FormAttachment(gameSpecificArea);
+		fd.left = new FormAttachment(60);
+		fd.right = new FormAttachment(100);
+		fd.bottom = new FormAttachment(100);
+		okButton.setLayoutData(fd);
+		okButton.addSelectionListener(new SelectionAdapter() {
+			
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				super.widgetSelected(e);
+				System.out.println("ok");
+			}
+			
+		});
+		
 		shell.open();
 	}
 
 	private Composite createGameLayout(GameView gv) {
 		Composite container = new Composite(gameSpecificArea, SWT.NONE);
-		container.setLayout(new RowLayout(SWT.VERTICAL));
+		container.setBackground(new Color(getParent().getDisplay(), new RGB(255, 0, 0)));
+		container.setLayout(new FormLayout());
 		
-		new Label(container, SWT.NONE).setText(I18N.getString("newGame") +": "+ gv.getGameName());
+		Label label = new Label(container, SWT.NONE);
+		label.setText(I18N.getString("newGame") +": "+ gv.getGameName());
 		
 		this.result = gv.getInputParameters();
-		createInputFields(container, this.result);
+		createInputFields(container, this.result, label);
 		
 		container.pack();
+		
 		return container;
 	}
 
-	private void createInputFields(final Composite container,
-			List<GameParameter<?>> inputParameters) {
+	private void createInputFields(final Composite parent,
+			List<GameParameter<?>> inputParameters, Label topAligningComponent) {
+		sc = new ScrolledComposite(parent, SWT.V_SCROLL);
+		sc.setBackground(new Color(getParent().getDisplay(), new RGB(0, 0, 255)));
+		FormData fd = new FormData();
+		fd.top = new FormAttachment(topAligningComponent);
+		fd.left = new FormAttachment(0);
+		fd.right = new FormAttachment(100);
+		fd.bottom = new FormAttachment(100);
+		sc.setLayoutData(fd);
+		sc.setLayout(new GridLayout(1, true));
+		
+		final Composite container = new Composite(sc, SWT.NONE);
+		container.setLayout(new RowLayout(SWT.VERTICAL));
+		container.setBackground(new Color(getParent().getDisplay(), new RGB(0, 255, 0)));
+		GridData gd = new GridData(SWT.FILL, SWT.FILL, true, true);
+		container.setLayoutData(gd);
+		
+		sc.setContent(container);
+
 		for (GameParameter<?> gameParameter : inputParameters) {
 			if (gameParameter.getBounds().getMax() > 1) {
 				
-				final List<Object> currentParameterValue = new ArrayList<>();
+				final Stack<Text> currentParameterValue = new Stack<>();
 				
+				/*
+				 * the bounds spinner for this parameter
+				 */
 				final Composite inputField = new Composite(container, SWT.NONE);
-				inputField.setLayout(new RowLayout(SWT.HORIZONTAL));
+				inputField.setLayout(new RowLayout());
 				new Label(inputField, SWT.NONE).setText(I18N.getString("numberOf")+ " "+
 							I18N.getString(gameParameter.getName()));
-				final Spinner boundsSpinner = new Spinner(inputField, SWT.NONE);
+				final Spinner boundsSpinner = new Spinner(inputField, SWT.READ_ONLY);
 				boundsSpinner.setMinimum(gameParameter.getBounds().getMin());
 				boundsSpinner.setMaximum(gameParameter.getBounds().getMax());
+
+				new Label(container, SWT.NONE).setText(I18N.getString(gameParameter.getName()).concat(":"));
+				
+				final Composite parameterListContainer = new Composite(container, SWT.NONE);
+				parameterListContainer.setLayout(new GridLayout(1, true));
+				
+				/*
+				 * if the value of the spinner changes, add/remove entry fields
+				 */
 				boundsSpinner.addModifyListener(new ModifyListener() {
 					
 					@Override
@@ -132,30 +226,42 @@ public class NewGameDialog extends Dialog {
 						int newCount = Integer.parseInt(boundsSpinner.getText());
 						
 						if (currentParameterValue.size() < newCount) {
-							addNewInputRow(container);
+							addNewInputRow(parameterListContainer, currentParameterValue);
 						}
 						else {
-							removeLastInputRow();
+							removeLastInputRow(parameterListContainer, currentParameterValue);
 						}
 					}
 
-					private void removeLastInputRow() {
-						// TODO Auto-generated method stub
-						
-					}
-
-					private void addNewInputRow(Composite parent) {
-						Text in = new Text(parent, SWT.SINGLE);
-						currentParameterValue.add(in);
-						parent.layout();
-						parent.pack();
-						parent.redraw();
-					}
-					
 				});
+				
+				for (int i = 0; i < gameParameter.getBounds().getMin(); i++) {
+					addNewInputRow(parameterListContainer, currentParameterValue);
+				}
+				
 			}
-			new Label(container, SWT.NONE).setText(I18N.getString(gameParameter.getName()));
 		}
+		
+		sc.setMinSize(container.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+		sc.setExpandHorizontal(true);
+		sc.setExpandVertical(true);
+		container.pack();
+	}
+	
+	private void removeLastInputRow(Composite parent, Stack<Text> currentParameterValue) {
+		currentParameterValue.pop().dispose();
+		parent.pack();
+	}
+
+	private void addNewInputRow(Composite parent, Stack<Text> currentParameterValue) {
+		Text in = new Text(parent, SWT.SINGLE | SWT.BORDER);
+		GridData gd = new GridData(280, SWT.DEFAULT);
+
+		in.setLayoutData(gd);
+		in.setSize(280, 32);
+		currentParameterValue.add(in);
+		parent.pack();
+		sc.pack();
 	}
 
 	private String[] createItems() {
