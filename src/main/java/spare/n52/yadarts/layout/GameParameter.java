@@ -72,8 +72,8 @@ public class GameParameter<T> {
 	
 	public static class Bounds {
 		
-		private int min;
-		private int max;
+		private int min = 0;
+		private int max = Integer.MAX_VALUE;
 		
 		public static Bounds unbound(int min) {
 			return new Bounds(min, Integer.MAX_VALUE);
