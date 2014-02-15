@@ -44,19 +44,23 @@ public class Sound implements Runnable {
 	private static final String WAVE_SUFFIX_STRING = "wav";
 	private LineListener lineListener;
 	
-    public Sound(String resourcename, SoundId soundId) {
+    public Sound(final String resourcename, final SoundId soundId) {
         try {
-        	String resourcePath = "/sounds/"+ resourcename + "/" + soundId.name().toLowerCase() + "." + WAVE_SUFFIX_STRING;
+        	if (soundId.equals(SoundId.None)) {
+        		logger.debug("'{}' sound selected --> skipping",soundId.name());
+        		return;
+        	}
+        	final String resourcePath = "/sounds/"+ resourcename + "/" + soundId.name().toLowerCase() + "." + WAVE_SUFFIX_STRING;
             logger.debug("Try to load resource '{}'", resourcePath);
 
-            URL resource = getClass().getResource(resourcePath);
+            final URL resource = getClass().getResource(resourcePath);
             
             if (resource == null) {
             	return;
             }
             
             // open the audio input stream
-            AudioInputStream stream =
+            final AudioInputStream stream =
                 AudioSystem.getAudioInputStream(resource.openStream());
 
             format = stream.getFormat();
@@ -66,10 +70,10 @@ public class Sound implements Runnable {
             
             source = new ByteArrayInputStream(samples);
         }
-        catch (UnsupportedAudioFileException ex) {
+        catch (final UnsupportedAudioFileException ex) {
             logger.warn(ex.getMessage(), ex);
         }
-        catch (IOException ex) {
+        catch (final IOException ex) {
         	logger.warn(ex.getMessage(), ex);
         }
     }
@@ -79,22 +83,22 @@ public class Sound implements Runnable {
         return samples;
     }
 
-    public void addLineListener(LineListener listener){
-    	this.lineListener = listener;
+    public void addLineListener(final LineListener listener){
+    	lineListener = listener;
     }
     
-    private byte[] getSamples(AudioInputStream audioStream) {
+    private byte[] getSamples(final AudioInputStream audioStream) {
         // get the number of bytes to read
-        int length = (int)(audioStream.getFrameLength() *
+        final int length = (int)(audioStream.getFrameLength() *
             format.getFrameSize());
 
         // read the entire stream
-        byte[] samples = new byte[length];
-        DataInputStream is = new DataInputStream(audioStream);
+        final byte[] samples = new byte[length];
+        final DataInputStream is = new DataInputStream(audioStream);
         try {
             is.readFully(samples);
         }
-        catch (IOException ex) {
+        catch (final IOException ex) {
             ex.printStackTrace();
         }
 
@@ -109,14 +113,14 @@ public class Sound implements Runnable {
 		}
 	      // use a short, 100ms (1/10th sec) buffer for real-time
         // change to the sound stream
-        int bufferSize = format.getFrameSize() *
+        final int bufferSize = format.getFrameSize() *
             Math.round(format.getSampleRate() / 10);
-        byte[] buffer = new byte[bufferSize];
+        final byte[] buffer = new byte[bufferSize];
 
         // create a line to play to
         SourceDataLine line;
         try {
-            DataLine.Info info =
+            final DataLine.Info info =
                 new DataLine.Info(SourceDataLine.class, format);
             line = (SourceDataLine)AudioSystem.getLine(info);
             if (lineListener != null) {
@@ -124,7 +128,7 @@ public class Sound implements Runnable {
             }
             line.open(format, bufferSize);
         }
-        catch (LineUnavailableException ex) {
+        catch (final LineUnavailableException ex) {
         	logger.warn(ex.getMessage(), ex);
             return;
         }
@@ -143,7 +147,7 @@ public class Sound implements Runnable {
                 }
             }
         }
-        catch (IOException ex) {
+        catch (final IOException ex) {
         	logger.warn(ex.getMessage(), ex);
         }
 

@@ -34,8 +34,8 @@ import spare.n52.yadarts.games.Score;
 
 public class BasicSoundService implements SoundService, LineListener {
 
-	private ExecutorService executor;
-	private Queue<SoundId> soundIdQueueQueue;
+	private final ExecutorService executor;
+	private final Queue<SoundId> soundIdQueueQueue;
 	public static final String SOUND_THEME = "SOUND_THEME";
 
 	public BasicSoundService() {
@@ -48,7 +48,7 @@ public class BasicSoundService implements SoundService, LineListener {
 	 * 
 	 * @param id
 	 */
-	protected void playSound(SoundId id) {
+	protected void playSound(final SoundId id) {
 		queueSound(id);
 		playQueue();
 	}
@@ -56,7 +56,7 @@ public class BasicSoundService implements SoundService, LineListener {
 	protected synchronized void playQueue() {
 		//TODO check for RuntimeExceptions. Otherwise sound system breaks for this app runtime
 		if (!soundIdQueueQueue.isEmpty()) {
-			Sound sound = new Sound(getSoundPackageName(), soundIdQueueQueue.poll());
+			final Sound sound = new Sound(getSoundPackageName(), soundIdQueueQueue.poll());
 			sound.addLineListener(this);
 			if (executor != null) {
 				executor.execute(sound);
@@ -68,7 +68,7 @@ public class BasicSoundService implements SoundService, LineListener {
 		return Configuration.Instance.instance().getSoundPackage();
 	}
 
-	protected void queueSound(SoundId id) {
+	protected void queueSound(final SoundId id) {
 		soundIdQueueQueue.add(id);
 	}
 
@@ -78,14 +78,14 @@ public class BasicSoundService implements SoundService, LineListener {
 		}
 	}
 
-	private SoundId getSoundIdForMultiplier(int number) {
+	private SoundId getSoundIdForMultiplier(final int number) {
 		switch (number) {
 		case 2:
 			return SoundId.Double;
 		case 3:
 			return SoundId.Triple;
 		default:
-			return SoundId.Hit;
+			return SoundId.None;
 		}
 	}
 	
@@ -97,29 +97,29 @@ public class BasicSoundService implements SoundService, LineListener {
 
 	@Override
 	public void onFinishingCombination(
-			List<List<PointEvent>> finishingCombinations) {
+			final List<List<PointEvent>> finishingCombinations) {
 	}
 
 	@Override
-	public void onCurrentPlayerChanged(Player currentPlayer, Score score) {
+	public void onCurrentPlayerChanged(final Player currentPlayer, final Score score) {
 	}
 
 	@Override
-	public void onBust(Player currentPlayer, Score score) {
+	public void onBust(final Player currentPlayer, final Score score) {
 		playSound(SoundId.Bust);
 	}
 
 	@Override
-	public void onRoundStarted(int rounds) {
+	public void onRoundStarted(final int rounds) {
 	}
 
 	@Override
-	public void onTurnFinished(Player finishedPlayer, Score score) {
+	public void onTurnFinished(final Player finishedPlayer, final Score score) {
 		playSound(SoundId.RemoveDarts);
 	}
 
 	@Override
-	public void onRemainingScoreForPlayer(Player currentPlayer, Score score) {
+	public void onRemainingScoreForPlayer(final Player currentPlayer, final Score score) {
 	}
 
 	@Override
@@ -128,13 +128,13 @@ public class BasicSoundService implements SoundService, LineListener {
 	}
 
 	@Override
-	public void onPlayerFinished(Player currentPlayer) {
+	public void onPlayerFinished(final Player currentPlayer) {
 	}
 
 	@Override
-	public void onGameFinished(Map<Player, Score> playerScoreMap, List<Player> winner) {
-		for (Player player : playerScoreMap.keySet()) {
-			playSound(SoundId.Hit);
+	public void onGameFinished(final Map<Player, Score> playerScoreMap, final List<Player> winner) {
+		for (final Player player : playerScoreMap.keySet()) {
+			playSound(SoundId.None);
 		}
 		// TODO implement something sophisticated
 		/*
@@ -145,10 +145,10 @@ public class BasicSoundService implements SoundService, LineListener {
 	}
 
 	@Override
-	public void onPointEvent(PointEvent event) {
+	public void onPointEvent(final PointEvent event) {
 
-		int multiplier = event.getMultiplier();
-		int baseNumber = event.getBaseNumber();
+		final int multiplier = event.getMultiplier();
+		final int baseNumber = event.getBaseNumber();
 		queueSound(SoundId.Hit);
 
 		if (multiplier > 1) {
@@ -178,7 +178,7 @@ public class BasicSoundService implements SoundService, LineListener {
 	}
 
 	@Override
-	public void update(LineEvent event) {
+	public void update(final LineEvent event) {
 		if (event.getType() != Type.STOP) {
 			return;
 		} else {
