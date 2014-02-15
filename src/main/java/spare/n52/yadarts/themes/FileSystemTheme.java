@@ -32,8 +32,15 @@ public class FileSystemTheme extends Theme {
 	private File boardLoFile;
 	private File backgroundImageFile;
 	private File backgroundAltImageFile;
+	
 	private File cornerTopLeftImageFile;
 	private File borderLeftImageFile;
+	private File cornerTopRightImageFile;
+	private File borderTopImageFile;
+	private File borderBottomImageFile;
+	private File cornerBottomRightImageFile;
+	private File borderRightImageFile;
+	private File cornerBottomLeftImageFile;
 	
 	private Image boardHiImage;
 	private Image boardMImage;
@@ -42,6 +49,13 @@ public class FileSystemTheme extends Theme {
 	private Image backgroundAltImage;
 	private Image cornerTopLeftImage;
 	private Image borderLeftImage;
+	private Image cornerTopRightImage;
+	private Image borderTopImage;
+	private Image cornerBottomLeftImage;
+	private Image borderBottomImage;
+	private Image cornerBottomRightImage;
+	private Image borderRightImage;
+
 
 
 	public FileSystemTheme(String path) throws URISyntaxException {
@@ -61,6 +75,13 @@ public class FileSystemTheme extends Theme {
 		this.backgroundAltImageFile = new File(baseDir, BACKGROUND_ALT);
 		this.cornerTopLeftImageFile = new File(baseDir, CORNER_TOP_LEFT);
 		this.borderLeftImageFile = new File(baseDir, BORDER_LEFT);
+		
+		this.cornerTopRightImageFile = new File(baseDir, CORNER_TOP_RIGHT);
+		this.borderTopImageFile = new File(baseDir, BORDER_TOP);
+		this.borderBottomImageFile = new File(baseDir, BORDER_BOTTOM);
+		this.cornerBottomRightImageFile = new File(baseDir, CORNER_BOTTOM_RIGHT);
+		this.borderRightImageFile = new File(baseDir, BORDER_RIGHT);
+		this.cornerBottomLeftImageFile = new File(baseDir, CORNER_BOTTOM_LEFT);
 		
 		assertFilesExist();
 	}
@@ -146,24 +167,62 @@ public class FileSystemTheme extends Theme {
 		return this.borderLeftImage;
 	}
 
-	public File getBoardHiFile() {
-		return checkAndReturnExistingFile(this.boardHiFile);
-	}
 
-	public File getBoardMFile() {
-		return checkAndReturnExistingFile(boardMFile);
-	}
-
-	public File getBoardLoFile() {
-		return checkAndReturnExistingFile(boardLoFile);
-	}
-	
-	private File checkAndReturnExistingFile(File f) {
-		if (f != null && f.exists() && !f.isDirectory()) {
-			return f;
+	@Override
+	public Image getCornerTopRight(Display d)
+			throws FileNotFoundException {
+		if (this.cornerTopRightImage == null) {
+			this.cornerTopRightImage = new Image(d, new FileInputStream(cornerTopRightImageFile));
 		}
-		return null;
+		
+		return this.cornerTopRightImage;
 	}
 
+	@Override
+	public Image getBorderTop(Display d) throws FileNotFoundException {
+		if (this.borderTopImage == null) {
+			this.borderTopImage = new Image(d, new FileInputStream(borderTopImageFile));
+		}
+		
+		return this.borderTopImage;
+	}
+
+	@Override
+	public Image getCornerBottomLeft(Display d)
+			throws FileNotFoundException {
+		if (this.cornerBottomLeftImage == null) {
+			this.cornerBottomLeftImage = new Image(d, new FileInputStream(cornerBottomLeftImageFile));
+		}
+		
+		return this.cornerBottomLeftImage;
+	}
+
+	@Override
+	public Image getBorderBottom(Display d) throws FileNotFoundException {
+		if (this.borderBottomImage == null) {
+			this.borderBottomImage = new Image(d, new FileInputStream(borderBottomImageFile));
+		}
+		
+		return this.borderBottomImage;
+	}
+
+	@Override
+	public Image getCornerBottomRight(Display d)
+			throws FileNotFoundException {
+		if (this.cornerBottomRightImage == null) {
+			this.cornerBottomRightImage = new Image(d, new FileInputStream(cornerBottomRightImageFile));
+		}
+		
+		return this.cornerBottomRightImage;
+	}
+
+	@Override
+	public Image getBorderRight(Display d) throws FileNotFoundException {
+		if (this.borderRightImage == null) {
+			this.borderRightImage = new Image(d, new FileInputStream(borderRightImageFile));
+		}
+		
+		return this.borderRightImage;
+	}
 
 }

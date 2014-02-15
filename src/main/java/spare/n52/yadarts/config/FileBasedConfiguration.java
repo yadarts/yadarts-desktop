@@ -25,6 +25,8 @@ import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import spare.n52.yadarts.sound.BasicSoundService;
+
 public class FileBasedConfiguration implements Configuration {
 
 	private static final Logger logger = LoggerFactory.getLogger(FileBasedConfiguration.class);
@@ -122,6 +124,11 @@ public class FileBasedConfiguration implements Configuration {
 		}
 		
 		return 0;
+	}
+
+	@Override
+	public String getSoundPackage() {
+		return properties.getProperty(BasicSoundService.SOUND_THEME, "yadarts");
 	}
 
 

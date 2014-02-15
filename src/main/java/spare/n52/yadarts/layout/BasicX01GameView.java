@@ -17,9 +17,10 @@
 package spare.n52.yadarts.layout;
 
 import java.io.FileNotFoundException;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Stack;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Font;
@@ -48,23 +49,35 @@ import spare.n52.yadarts.games.GameStatusUpdateListener;
 import spare.n52.yadarts.games.Score;
 import spare.n52.yadarts.games.x01.GenericX01Game;
 import spare.n52.yadarts.i18n.I18N;
+import spare.n52.yadarts.layout.GameParameter.Bounds;
 import spare.n52.yadarts.layout.board.BoardView;
+import spare.n52.yadarts.persistence.HighscorePersistence;
+import spare.n52.yadarts.persistence.PersistencyException;
+import spare.n52.yadarts.sound.BasicSoundService;
 import spare.n52.yadarts.themes.BorderedControlContainer;
 import spare.n52.yadarts.themes.Theme;
 
-public class BasicX01GameView extends Composite implements
-		GameStatusUpdateListener {
+public abstract class BasicX01GameView implements
+		GameStatusUpdateListener, GameView {
 
+	private static final String FONT = "Arial";
+	private static final int NORMAL_FONT = 16;
+	private static final int LARGE_FONT = 24;
+	private static final String MISSED = "X";
+	private static final String BOUNCE_OUT = "B";
 	private static final Logger logger = LoggerFactory
 			.getLogger(BasicX01GameView.class);
+	public static final String PLAYERS_PARAMETER = "playersInput";
 	private Label currentScore;
 	private BoardView theBoard;
-	private Label turnSummary;
+	private Label currentPlayer;
+	private Label turnThrows;
+	private Label turnScore;
+	private Label finishingCombinationsLabel;
+	private Label finishingCombinations;
 	private Composite leftBar;
 	private Composite rightBar;
-	private static List<Player> thePlayers = Arrays.asList(new Player[] {
-			new PlayerImpl("Jan"), new PlayerImpl("Benjamin"),
-			new PlayerImpl("Eike"), new PlayerImpl("Matthes") });
+
 	private Composite bottomBar;
 	private Label statusBar;
 	private GenericX01Game x01Game;
@@ -73,38 +86,57 @@ public class BasicX01GameView extends Composite implements
 	private int targetScore;
 	private Label roundLabel;
 	private Image background;
+	private Composite wrapper;
+	/**
+	 * stores the turnScore for the currently throwing player
+	 */
+	private final Stack<PointEvent> turnScoreMemory = new Stack<>();
 	
-	public BasicX01GameView(Composite parent, int style, int targetScore) {
-		this(parent, style, thePlayers, targetScore);
+	/**
+	 * @return the X01 score (e.g. 701)
+	 */
+	protected abstract int getDesiredTargetScore();
+	
+	@Override
+	public List<GameParameter<?>> getInputParameters() {
+		final List<GameParameter<?>> result = new ArrayList<>();
+		result.add(new GameParameter<String>(String.class, PLAYERS_PARAMETER, Bounds.unbound(2)));
+		return result;
 	}
-
-	public BasicX01GameView(Composite parent, int style, List<Player> playerList, int targetScore) {
-		super(parent, style);
+	
+	@Override
+	public void initialize(final Composite parent, final int style, final List<GameParameter<?>> inputValues) {
+		players = resolvePlayers(inputValues);
+		if (players == null) {
+			throw new IllegalStateException("No players found!");
+		}
+		
+		targetScore = getDesiredTargetScore();
+		
+		wrapper = new Composite(parent, style);
 		
 		try {
-			this.background = Theme.getCurrentTheme().getBackground(getDisplay());
-		} catch (FileNotFoundException e1) {
+			background = Theme.getCurrentTheme().getBackground(wrapper.getDisplay());
+		} catch (final FileNotFoundException e1) {
 			logger.warn(e1.getMessage(), e1);
 			throw new IllegalStateException("The theme does not provide a valid background resource");
 		}
 		
-		this.setBackgroundImage(background);
+		wrapper.setBackgroundImage(background);
 		
-		this.players = playerList;
-		this.targetScore = targetScore;
-		
-		FormLayout formLayout = new FormLayout();
+		final FormLayout formLayout = new FormLayout();
 		formLayout.marginHeight = 0;
 		formLayout.marginWidth = 0;
 		formLayout.spacing = 0;
-		this.setLayout(formLayout);
+		wrapper.setLayout(formLayout);
 
+		initFirstRow(wrapper);
 
-		initFirstRow(this);
+		initSecondRow(wrapper);
 
-		initSecondRow(this);
-
-		this.pack();
+		wrapper.pack();
+		
+		currentPlayer.setText(players.get(0).getName());
 
 		try {
 			startGame();
@@ -113,11 +145,37 @@ public class BasicX01GameView extends Composite implements
 		}
 	}
 
+
+	private List<Player> resolvePlayers(final List<GameParameter<?>> inputValues) {
+		for (final GameParameter<?> gameParameter : inputValues) {
+			switch (gameParameter.getName()) {
+			case PLAYERS_PARAMETER:
+				final List<Player> result = new ArrayList<>();
+				
+				final Object value = gameParameter.getValue();
+
+				for (final String player : (List<String>) value) {
+					result.add(new PlayerImpl(player));
+				}
+				
+				return result;
+			default:
+				break;
+			}
+		}
+		return null;
+	}
+
 	private void startGame() throws InitializationException,
 			AlreadyRunningException {
-		EventEngine engine = EventEngine.instance();
-		x01Game = new GenericX01Game(players, 301);
+		final EventEngine engine = EventEngine.instance();
+		x01Game = GenericX01Game.create(players, targetScore);
 		x01Game.registerGameListener(this);
+		
+		/*
+		 * TODO: check Configuration for existing SoundService 
+		 */
+		x01Game.registerGameListener(new BasicSoundService());
 		engine.registerListener(x01Game);
 		engine.start();
 	}
@@ -126,7 +184,7 @@ public class BasicX01GameView extends Composite implements
 		createLeftBar(container);
 
 		theBoard = new BoardView(container, SWT.NONE);
-		FormData theBoardData = new FormData();
+		final FormData theBoardData = new FormData();
 		theBoardData.top = new FormAttachment(0);
 		theBoardData.left = new FormAttachment(leftBar);
 		theBoardData.right = new FormAttachment(80);
@@ -137,32 +195,50 @@ public class BasicX01GameView extends Composite implements
 	}
 
 
-	private void createRightBar(Composite container) {
+	private void createRightBar(final Composite container) {
 		rightBar = new BorderedControlContainer(container, SWT.NONE) {
-			
+
 			@Override
-			protected Control createContents(Composite parent) {
-				Composite rightBarContainer = new Composite(parent, SWT.NONE);
+			protected Control createContents(final Composite parent) {
+				final Composite rightBarContainer = new Composite(parent, SWT.NONE);
 				rightBarContainer.setBackgroundMode(SWT.INHERIT_FORCE);
 				
-				RowLayout leftBarLayout = new RowLayout(SWT.VERTICAL);
+				final RowLayout leftBarLayout = new RowLayout(SWT.VERTICAL);
 				leftBarLayout.spacing = 5;
 				rightBarContainer.setLayout(leftBarLayout);
 				
-				new Label(rightBarContainer, SWT.UNDERLINE_SINGLE).setText(I18N.getString("currentRound").concat(":"));
-				roundLabel = new Label(rightBarContainer, SWT.NONE);
-				roundLabel.setText("1");
-				roundLabel.setFont(new Font(getDisplay(), new FontData("Arial", 16,
-						SWT.NONE)));
-
+				new Label(rightBarContainer, SWT.UNDERLINE_DOUBLE).setText(I18N.getString("currentPlayer").concat(":"));
+				currentPlayer = new Label(rightBarContainer, SWT.NONE);
+				currentPlayer.setFont(new Font(getDisplay(), new FontData(FONT, LARGE_FONT,SWT.NONE)));
+				
 				new Label(rightBarContainer, SWT.UNDERLINE_SINGLE).setText(I18N.getString("turnThrows").concat(":"));
-				turnSummary = new Label(rightBarContainer, SWT.NONE);
-				turnSummary.setFont(new Font(getDisplay(), new FontData("Arial", 16,
+				turnThrows = new Label(rightBarContainer, SWT.NONE);
+				turnThrows.setFont(new Font(getDisplay(), new FontData(FONT, NORMAL_FONT,
 						SWT.NONE)));
+				
+				new Label(rightBarContainer, SWT.UNDERLINE_SINGLE).setText(I18N.getString("turnScore").concat(":"));
+				turnScore = new Label(rightBarContainer, SWT.NONE);
+				turnScore.setFont(new Font(getDisplay(), new FontData(FONT, LARGE_FONT,
+						SWT.NONE)));
+				
+				new Label(rightBarContainer, SWT.UNDERLINE_SINGLE).setText(I18N.getString("remainingScore").concat(":"));
+				currentScore = new Label(rightBarContainer, SWT.NONE);
+				currentScore.setFont(new Font(getDisplay(), new FontData(FONT, LARGE_FONT,
+						SWT.NONE)));
+				currentScore.setText(Integer.toString(getDesiredTargetScore()));
+				
+				finishingCombinationsLabel = new Label(rightBarContainer, SWT.UNDERLINE_SINGLE);
+				finishingCombinationsLabel.setText(I18N.getString("finishingCombinations").concat(":"));
+				finishingCombinationsLabel.setVisible(false);
+				finishingCombinations = new Label(rightBarContainer, SWT.NONE);
+				finishingCombinations.setFont(new Font(getDisplay(), new FontData(FONT, NORMAL_FONT,
+						SWT.NONE)));
+				finishingCombinations.setVisible(false);
+				
 				return rightBarContainer;
 			}
 		};
-		FormData rightBarData = new FormData();
+		final FormData rightBarData = new FormData();
 		rightBarData.top = new FormAttachment(0);
 		rightBarData.left = new FormAttachment(theBoard);
 		rightBarData.right = new FormAttachment(100);
@@ -172,31 +248,32 @@ public class BasicX01GameView extends Composite implements
 
 	}
 
-	private void createLeftBar(Composite container) {
+	private void createLeftBar(final Composite container) {
 		leftBar = new BorderedControlContainer(container, SWT.NONE) {
 			
 			@Override
-			protected Control createContents(Composite parent) {
-				Composite leftBarContainer = new Composite(parent, SWT.NONE);
+			protected Control createContents(final Composite parent) {
+				final Composite leftBarContainer = new Composite(parent, SWT.NONE);
 				leftBarContainer.setBackgroundMode(SWT.INHERIT_FORCE);
 				
-				GridLayout leftBarLayout = new GridLayout(1, true);
+				final GridLayout leftBarLayout = new GridLayout(1, true);
 				leftBarContainer.setLayout(leftBarLayout);
+				
+				new Label(leftBarContainer, SWT.UNDERLINE_SINGLE).setText(I18N.getString("currentRound").concat(":"));
+				roundLabel = new Label(leftBarContainer, SWT.NONE);
+				roundLabel.setText("1");
+				roundLabel.setFont(new Font(getDisplay(), new FontData(FONT, NORMAL_FONT,
+						SWT.NONE)));
 				
 				new Label(leftBarContainer, SWT.UNDERLINE_SINGLE).setText(I18N.getString("theTurnIsOn").concat(":"));
 				playerTable = new PlayerTableView(leftBarContainer, SWT.NONE, players, targetScore);
-				GridData data = new GridData(SWT.FILL, SWT.FILL, true, false);
+				final GridData data = new GridData(SWT.FILL, SWT.FILL, true, false);
 				playerTable.setLayoutData(data);
 
-				new Label(leftBarContainer, SWT.UNDERLINE_SINGLE).setText(I18N.getString("remainingScore").concat(":"));
-				currentScore = new Label(leftBarContainer, SWT.NONE);
-				currentScore.setFont(new Font(getDisplay(), new FontData("Arial", 24,
-						SWT.NONE)));
-				currentScore.setText("301");
 				return leftBarContainer;
 			}
 		};
-		FormData leftBarData = new FormData();
+		final FormData leftBarData = new FormData();
 		leftBarData.top = new FormAttachment(0);
 		leftBarData.left = new FormAttachment(0);
 		leftBarData.right = new FormAttachment(20);
@@ -204,22 +281,22 @@ public class BasicX01GameView extends Composite implements
 		leftBar.setLayoutData(leftBarData);
 	}
 
-	private void initSecondRow(Composite container) {
+	private void initSecondRow(final Composite container) {
 		bottomBar = new BorderedControlContainer(container, SWT.NONE) {
 			
 			@Override
-			protected Control createContents(Composite parent) {
-				Composite bottomBarContainer = new Composite(parent, SWT.NONE);
+			protected Control createContents(final Composite parent) {
+				final Composite bottomBarContainer = new Composite(parent, SWT.NONE);
 				bottomBarContainer.setLayout(new FillLayout());
 				bottomBarContainer.setBackgroundMode(SWT.INHERIT_FORCE);
 				statusBar = new Label(bottomBarContainer, SWT.NONE);
-				statusBar.setFont(new Font(getDisplay(), new FontData("Arial", 14,
+				statusBar.setFont(new Font(getDisplay(), new FontData(FONT, 14,
 						SWT.NONE)));
 				return bottomBarContainer;
 			}
 		};
 		
-		FormData leftBarData = new FormData();
+		final FormData leftBarData = new FormData();
 		leftBarData.top = new FormAttachment(leftBar);
 		leftBarData.left = new FormAttachment(0);
 		leftBarData.right = new FormAttachment(100);
@@ -229,7 +306,7 @@ public class BasicX01GameView extends Composite implements
 	}
 
 	private void updateLabel(final Label theLabel, final String value) {
-		getDisplay().asyncExec(new Runnable() {
+		wrapper.getDisplay().asyncExec(new Runnable() {
 			@Override
 			public void run() {
 				theLabel.setText(value);
@@ -239,16 +316,19 @@ public class BasicX01GameView extends Composite implements
 	}
 
 	@Override
-	public void onCurrentPlayerChanged(final Player p, Score remaining) {
+	public void onCurrentPlayerChanged(final Player p, final Score remaining) {
 		playerTable.setCurrentPlayer(p, remaining);
-		updateLabel(turnSummary, "");
+		updateLabel(currentPlayer, p.getName());
+		updateLabel(turnThrows, "");
+		updateLabel(turnScore,"");
+		turnScoreMemory.clear();
 		onRemainingScoreForPlayer(p, remaining);
 		theBoard.removeAllArrows();
 	}
 
 	@Override
-	public void onBust(final Player p, Score remaining) {
-		String s = String.format(I18N.getString("playerBusted"),
+	public void onBust(final Player p, final Score remaining) {
+		final String s = String.format(I18N.getString("playerBusted"),
 				p.getName(), remaining.getTotalScore());
 		logger.info(s);
 		updateLabel(statusBar, s);
@@ -257,30 +337,39 @@ public class BasicX01GameView extends Composite implements
 
 	@Override
 	public void onPointEvent(final PointEvent event) {
+		turnScoreMemory.push(event);
 		processPointEvent(Integer.toString(event.getScoreValue()));
 		theBoard.onPointEvent(event);
 	}
 
-	private void processPointEvent(final String value) {
-		getDisplay().asyncExec(new Runnable() {
+	private void processPointEvent(final String eventValueString) {
+		wrapper.getDisplay().asyncExec(new Runnable() {
 			@Override
 			public void run() {
-				String current = turnSummary.getText();
+				final String current = turnThrows.getText();
 
 				String result;
 				if (current != null && !current.isEmpty()) {
-					result = String.format("%s, %s", current, value);
+					result = String.format("%s, %s", current, eventValueString);
 				} else {
-					result = value;
+					result = eventValueString;
 				}
+				updateLabel(turnScore, getSum(turnScoreMemory));
+				updateLabel(turnThrows, result);
+			}
 
-				updateLabel(turnSummary, result);
+			private String getSum(final Stack<PointEvent> turnScoreMemory) {
+				int sum = 0;
+				for (final PointEvent pointEvent : turnScoreMemory) {
+					sum += pointEvent.getScoreValue();
+				}
+				return Integer.toString(sum);
 			}
 		});
 	}
 
 	@Override
-	public void onRoundStarted(int rounds) {
+	public void onRoundStarted(final int rounds) {
 		logger.info("+++++++++++++++++++");
 		logger.info("Round {} started!", rounds);
 		logger.info("+++++++++++++++++++");
@@ -290,7 +379,7 @@ public class BasicX01GameView extends Composite implements
 
 	@Override
 	public void onFinishingCombination(
-			List<List<PointEvent>> finishingCombinations) {
+			final List<List<PointEvent>> finishingCombinations) {
 		logger.info("Player can finished with the following combinations:");
 
 		if (finishingCombinations == null) {
@@ -298,18 +387,21 @@ public class BasicX01GameView extends Composite implements
 		}
 
 		StringBuilder sb;
-		for (List<PointEvent> list : finishingCombinations) {
+		for (final List<PointEvent> list : finishingCombinations) {
 			sb = new StringBuilder();
-			for (PointEvent pe : list) {
+			for (final PointEvent pe : list) {
 				sb.append(pe);
 				sb.append(" + ");
 			}
 			logger.info(sb.toString());
+			this.finishingCombinations.setText(sb.toString());
+			this.finishingCombinations.setVisible(true);
+			finishingCombinationsLabel.setVisible(true);
 		}
 	}
 
 	@Override
-	public void onTurnFinished(Player finishedPlayer, Score remainingScore) {
+	public void onTurnFinished(final Player finishedPlayer, final Score remainingScore) {
 		logger.info("Player {} finished the turn. Remaining points: {}",
 				finishedPlayer, remainingScore.getTotalScore());
 		updateLabel(statusBar, String.format(
@@ -318,7 +410,7 @@ public class BasicX01GameView extends Composite implements
 	}
 
 	@Override
-	public void onRemainingScoreForPlayer(Player currentPlayer, Score remainingScore) {
+	public void onRemainingScoreForPlayer(final Player currentPlayer, final Score remainingScore) {
 		logger.info("Player {}'s remaining points: {}", currentPlayer,
 				remainingScore.getTotalScore());
 		updateLabel(currentScore, Integer.toString(remainingScore.getTotalScore()));
@@ -332,25 +424,34 @@ public class BasicX01GameView extends Composite implements
 	}
 
 	@Override
-	public void onPlayerFinished(Player currentPlayer) {
+	public void onPlayerFinished(final Player currentPlayer) {
 		logger.info("Player {} finished!!!!!!! You are a Dart god!",
 				currentPlayer);
 		updateLabel(statusBar, String.format(I18N.getString("playerFinished"), currentPlayer.getName()));
 	}
 
 	@Override
-	public void onGameFinished(Map<Player, Score> playerScoreMap, List<Player> winner) {
+	public void onGameFinished(final Map<Player, Score> playerScoreMap, final List<Player> winner) {
 		logger.info("The game has ended!");
 
-		for (Player player : playerScoreMap.keySet()) {
-			logger.info("{}: {}", player, playerScoreMap.get(player));
+		for (final Player player : playerScoreMap.keySet()) {
+			final Score score = playerScoreMap.get(player);
+			logger.info("{}: {}", player, score);
+			
+			if (score.getTotalScore() == 0) {
+				try {
+					HighscorePersistence.Instance.instance().addHighscoreEntry(x01Game.getClass(), score);
+				} catch (final PersistencyException e) {
+					logger.warn(e.getMessage(), e);
+				}
+			}
 		}
 
 		updateLabel(statusBar, String.format(I18N.getString("gameHasEnded"), winner.toString()));
 		
 		try {
 			EventEngine.instance().shutdown();
-		} catch (InitializationException e) {
+		} catch (final InitializationException e) {
 			logger.warn(e.getMessage(), e);
 		}
 	}
@@ -362,13 +463,14 @@ public class BasicX01GameView extends Composite implements
 
 	@Override
 	public void onBounceOutPressed() {
-		processPointEvent("bounce out!");
+		turnScoreMemory.pop();
+		processPointEvent(BOUNCE_OUT);
 		theBoard.removeLastHit();
 	}
 
 	@Override
 	public void onDartMissedPressed() {
-		processPointEvent("missed!");
+		processPointEvent(MISSED);
 	}
 
 }
