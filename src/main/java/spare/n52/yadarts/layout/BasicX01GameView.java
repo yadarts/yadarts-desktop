@@ -258,7 +258,7 @@ public abstract class BasicX01GameView implements
 				currentScore = new Label(leftBarContainer, SWT.NONE);
 				currentScore.setFont(new Font(getDisplay(), new FontData("Arial", 24,
 						SWT.NONE)));
-				currentScore.setText("301");
+				currentScore.setText(Integer.toString(targetScore));
 				return leftBarContainer;
 			}
 		};
