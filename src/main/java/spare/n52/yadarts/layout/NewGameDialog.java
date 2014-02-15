@@ -44,7 +44,13 @@ import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.Text;
 
 import spare.n52.yadarts.i18n.I18N;
+import spare.n52.yadarts.layout.GameParameter.Bounds;
 
+/**
+ * A sophisticated dialog class that dynamically creates
+ * UI input fields based on the required parameters of the
+ * available games (see {@link GameView.AvailableGames})
+ */
 public class NewGameDialog extends Dialog {
 
 	private Shell shell;
@@ -60,7 +66,7 @@ public class NewGameDialog extends Dialog {
 		return new NewGameDialog(shell);
 	}
 
-	public NewGameDialog(Shell parent) {
+	private NewGameDialog(Shell parent) {
 		super(parent);
 		availableGames = GameView.AvailableGames.get();
 	}
@@ -143,6 +149,7 @@ public class NewGameDialog extends Dialog {
 			public void widgetSelected(SelectionEvent e) {
 				super.widgetSelected(e);
 				result = currentLayout.computeFilledParameters();
+				shell.dispose();
 			}
 			
 		});
@@ -160,10 +167,16 @@ public class NewGameDialog extends Dialog {
 		return array;
 	}
 
-	public static class GameLayout extends Composite {
+	/**
+	 * This class creates a UI for paramter input
+	 * based on the defined {@link GameParameter}s of the
+	 * {@link GameView}.
+	 */
+	private static class GameLayout extends Composite {
 
 		private GameView game;
 		private Map<GameParameter<?>, Stack<Text>> parameterInputs = new HashMap<>();
+		private ScrolledComposite scrollView;
 
 		public GameLayout(GameView gv, Composite parent) {
 			super(parent, SWT.NONE);
@@ -171,69 +184,165 @@ public class NewGameDialog extends Dialog {
 			
 			this.setLayout(new FillLayout());
 
-			// set the minimum width and height of the scrolled content - method 2
-			final ScrolledComposite sc2 = new ScrolledComposite(this, SWT.H_SCROLL
+			/*
+			 * this scrollView is updated when the UI changes
+			 * dynamically
+			 */
+			scrollView = new ScrolledComposite(this, SWT.H_SCROLL
 					| SWT.V_SCROLL | SWT.BORDER);
-			sc2.setExpandHorizontal(true);
-			sc2.setExpandVertical(true);
-			final Composite c2 = new Composite(sc2, SWT.NONE);
-			sc2.setContent(c2);
+			scrollView.setExpandHorizontal(true);
+			scrollView.setExpandVertical(true);
+			
+			/*
+			 * the contentContainer is the root Composite of this game view.
+			 * it is a child of scrollView to enable scrolling.
+			 */
+			final Composite contentContainer = new Composite(scrollView, SWT.NONE);
+			scrollView.setContent(contentContainer);
 
 			GridLayout layout = new GridLayout();
 			layout.numColumns = 1;
-			c2.setLayout(layout);
+			contentContainer.setLayout(layout);
 			
-			new Label(c2, SWT.NONE).setText(I18N.getString("newGame").concat(": ").concat(this.game.getGameName()));
+			/*
+			 * define a nice headline
+			 */
+			new Label(contentContainer, SWT.NONE).setText(I18N.getString("newGame").concat(": ").concat(this.game.getGameName()));
 			
 			for (final GameParameter<?> param : this.game.getInputParameters()) {
-				parameterInputs.put(param, new Stack<Text>());
-				
-				final Spinner spinner = new Spinner(c2, SWT.READ_ONLY);
-				spinner.setMaximum(param.getBounds().getMax());
-				spinner.setMinimum(param.getBounds().getMin());
-				
-				final Composite parameterList = new Composite(c2, SWT.NONE);
-				parameterList.setLayout(new GridLayout(1, true));
-				parameterList.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
-				
-				spinner.addModifyListener(new ModifyListener() {
-					@Override
-					public void modifyText(ModifyEvent e) {
-						int count = Integer.parseInt(spinner.getText());
-						
-						if (count > parameterInputs.get(param).size()) {
-							/*
-							 * change the stack top child. call 
-							 * layout() on the stack's component
-							 */
-							addParameterInput(parameterList, param);	
-						}
-						else {
-							removeLastParameterInput(parameterList, param);
-						}
-						
-
-						// reset the minimum width and height so children can be seen -
-						sc2.setMinSize(c2.computeSize(SWT.DEFAULT, SWT.DEFAULT));
-						c2.layout();
-					}
-				});
+				createParameterView(param, contentContainer);
 			}
 			
-			// set the minimum width and height so children can be seen
-			sc2.setMinSize(c2.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+			/*
+			 * initially compute the min size so the scroll bars are rendered
+			 * when required
+			 */
+			scrollView.setMinSize(contentContainer.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 		}
 
+		/**
+		 * creates an input area based on the provided {@link GameParameter} and
+		 * its {@link Bounds}.
+		 * 
+		 * @param param the input parameter
+		 * @param contentContainer the parent Composite
+		 */
+		private void createParameterView(final GameParameter<?> param, final Composite contentContainer) {
+			if (param.getBounds().getMin() != param.getBounds().getMax()) {
+				createParameterViewWithSpinner(param, contentContainer);
+			}
+			else {
+				createStaticParameterView(param, contentContainer);
+			}
+		}
+
+		/**
+		 * creates a parameter input view where the bounds are 
+		 * static. No dynamic including of additional fields
+		 * is required here. 
+		 * 
+		 * @param param the game parameter
+		 * @param contentContainer the parent Composite
+		 */
+		private void createStaticParameterView(final GameParameter<?> param,
+				final Composite contentContainer) {
+			new Label(contentContainer, SWT.NONE).setText(I18N.getString(param.getName()));
+			
+			parameterInputs.put(param, new Stack<Text>());
+
+			final Composite parameterList = new Composite(contentContainer, SWT.NONE);
+			parameterList.setLayout(new GridLayout(1, true));
+			parameterList.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+			
+			for (int i = 0; i < param.getBounds().getMax(); i++) {
+				addParameterInput(parameterList, param);	
+			}
+			
+		}
+
+		/**
+		 * creates a parameter input view where the bounds are 
+		 * dynamic. A spinner is used to define the amount
+		 * of input fields. 
+		 * 
+		 * @param param the game parameter
+		 * @param contentContainer the parent Composite
+		 */
+		private void createParameterViewWithSpinner(final GameParameter<?> param,
+				final Composite contentContainer) {
+			parameterInputs.put(param, new Stack<Text>());
+			
+			Composite spinnerContainer = new Composite(contentContainer, SWT.NONE);
+			spinnerContainer.setLayout(new RowLayout());
+			new Label(spinnerContainer, SWT.NONE).setText(I18N.getString(param.getName()));
+			
+			final Spinner spinner = new Spinner(spinnerContainer, SWT.READ_ONLY);
+			spinner.setMaximum(param.getBounds().getMax());
+			spinner.setMinimum(param.getBounds().getMin());
+			
+			final Composite parameterList = new Composite(contentContainer, SWT.NONE);
+			parameterList.setLayout(new GridLayout(1, true));
+			parameterList.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+			
+			spinner.addModifyListener(new ModifyListener() {
+				@Override
+				public void modifyText(ModifyEvent e) {
+					int count = Integer.parseInt(spinner.getText());
+					
+					if (count > parameterInputs.get(param).size()) {
+						/*
+						 * change the stack top child. call 
+						 * layout() on the stack's component
+						 */
+						addParameterInput(parameterList, param);	
+					}
+					else {
+						removeLastParameterInput(parameterList, param);
+					}
+
+					/*
+					 * updated the size of the scrollView as the contents
+					 * have changed!
+					 */
+					scrollView.setMinSize(contentContainer.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+					contentContainer.layout();
+				}
+			});
+			
+			for (int i = 0; i < param.getBounds().getMin(); i++) {
+				addParameterInput(parameterList, param);	
+			}
+		}
+
+		/**
+		 * add a single input field and store it in {@link #parameterInputs}
+		 * 
+		 * @param parameterListContainer the parent
+		 * @param param the defining game parameter
+		 */
 		protected void addParameterInput(Composite parameterListContainer, GameParameter<?> param) {
-			Text button = new Text(parameterListContainer, SWT.NONE);
-			this.parameterInputs.get(param).push(button);
+			Text textInput = new Text(parameterListContainer, SWT.BORDER);
+			textInput.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+			textInput.setSize(120, 32);
+			this.parameterInputs.get(param).push(textInput);
 		}
 
+		/**
+		 * remove the last input field that has been added (both from the view
+		 * and {@link #parameterInputs})
+		 * 
+		 * @param parameterListContainer the parent
+		 * @param param the defining game parameter
+		 */
 		protected void removeLastParameterInput(Composite parameterListContainer, GameParameter<?> param) {
 			Text toRemove = this.parameterInputs.get(param).pop();
 			toRemove.dispose();
 		}
 
+		/**
+		 * @return the filled list of {@link GameParameter}s. the contents
+		 * are read from the UI input fields
+		 */
 		public List<GameParameter<?>> computeFilledParameters() {
 			List<GameParameter<?>> list = new ArrayList<>();
 			
@@ -246,7 +355,9 @@ public class NewGameDialog extends Dialog {
 
 		private GameParameter<?> computeParameterValues(
 				GameParameter<?> gameParameter, Stack<Text> inputFields) {
-			//TODO implement other datatypes. currently only String
+			/*
+			 * TODO implement other datatypes. currently only String
+			 */
 			
 			if (gameParameter.getType().isAssignableFrom(String.class)) {
 				computeStringParameterValues(gameParameter, inputFields);	
