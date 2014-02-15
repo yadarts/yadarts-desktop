@@ -26,12 +26,12 @@ public class ServicesTest {
 	@Test
 	public void testInterfaceCreation() {
 		List<DummyServiceLoadedInterface> dslis = 
-				Services.getInterfaceImplementations(DummyServiceLoadedInterface.class);
+				Services.getImplementations(DummyServiceLoadedInterface.class);
 		
 		Assert.assertTrue(dslis.size() == 2);
 		
 		DummyServiceLoadedInterface dsli = 
-				Services.getInterfaceImplementation(DummyServiceLoadedInterface.class);
+				Services.getImplementation(DummyServiceLoadedInterface.class);
 		
 		Assert.assertTrue(dslis.get(0) == dsli);
 		

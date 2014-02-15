@@ -46,6 +46,14 @@ public interface HighscorePersistence extends Disposable {
 	 * @throws PersistencyException
 	 */
 	public List<Score> getHighscore(Class<? extends Game> theGame) throws PersistencyException;
+
+	/**
+	 * An implementation shall return all supported implementations
+	 * of {@link Game}.
+	 * 
+	 * @return the list of supported {@link Game} implementations
+	 */
+	List<Class<? extends Game>> getSupportedGameTypes();
 	
 
 }

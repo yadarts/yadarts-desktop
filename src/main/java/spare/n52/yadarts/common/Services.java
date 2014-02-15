@@ -38,7 +38,7 @@ public class Services {
 	 * @return the list of all available interface impls
 	 */
 	@SuppressWarnings("unchecked")
-	public static synchronized <T> List<T> getInterfaceImplementations(Class<? extends T> theClazz) {
+	public static synchronized <T> List<T> getImplementations(Class<? extends T> theClazz) {
 		if (interfaceImplementations.containsKey(theClazz)) {
 			return (List<T>) interfaceImplementations.get(theClazz);
 		}
@@ -59,8 +59,8 @@ public class Services {
 	 * @param theClazz the interface class
 	 * @return the first found interface impl
 	 */
-	public static synchronized <T> T getInterfaceImplementation(Class<? extends T> theClazz) {
-		List<T> result = getInterfaceImplementations(theClazz);
+	public static synchronized <T> T getImplementation(Class<? extends T> theClazz) {
+		List<T> result = getImplementations(theClazz);
 		
 		if (result != null && !result.isEmpty()) {
 			return result.get(0);
@@ -71,8 +71,8 @@ public class Services {
 
 	/**
 	 * goes through all interface impls created with
-	 * {@link #getInterfaceImplementation(Class)} or
-	 * {@link #getInterfaceImplementations(Class)}, checks
+	 * {@link #getImplementation(Class)} or
+	 * {@link #getImplementations(Class)}, checks
 	 * if they extends {@link Disposable}. If so, the instances
 	 * are closed via {@link Disposable#shutdown()}.
 	 */

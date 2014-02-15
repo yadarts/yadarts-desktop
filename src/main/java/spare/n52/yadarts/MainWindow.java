@@ -40,6 +40,7 @@ import spare.n52.yadarts.config.Configuration;
 import spare.n52.yadarts.i18n.I18N;
 import spare.n52.yadarts.layout.GameParameter;
 import spare.n52.yadarts.layout.GameView;
+import spare.n52.yadarts.layout.HighscoreView;
 import spare.n52.yadarts.layout.NewGameDialog;
 import spare.n52.yadarts.layout.WelcomeView;
 import spare.n52.yadarts.persistence.HighscorePersistence;
@@ -58,7 +59,7 @@ public class MainWindow {
 
 	public MainWindow(Display display, MainWindowOpenedListener l) {
 		shell = new Shell(display);
-		this.fullscreen = Services.getInterfaceImplementation(Configuration.class).isAutoFullScreen();
+		this.fullscreen = Services.getImplementation(Configuration.class).isAutoFullScreen();
 		
 		shell.setMinimumSize(800, 600);
 		shell.setText("yadarts desktop edition");
@@ -156,6 +157,21 @@ public class MainWindow {
         new MenuItem(fileMenu, SWT.SEPARATOR);
         
         /*
+         * highscore menu item
+         */
+        MenuItem highscore = new MenuItem(fileMenu, SWT.PUSH);
+        highscore.setText(I18N.getString("highscore"));
+        
+        highscore.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+            	createHighscoreView();
+            }
+        });
+        
+        new MenuItem(fileMenu, SWT.SEPARATOR);
+        
+        /*
          * exit menu item
          */
         MenuItem exitItem = new MenuItem(fileMenu, SWT.PUSH);
@@ -174,11 +190,19 @@ public class MainWindow {
         shell.pack();
 	}
 
-	protected void createGameView(GameView gv, List<GameParameter<?>> list) {
+	private void createGameView(GameView gv, List<GameParameter<?>> list) {
 		clearRootPanel();
 		
 		currentContentView = gv.initialize(rootPanel, SWT.NONE, list);
 		rootPanel.pack();
+	}
+	
+	private void createHighscoreView() {
+		clearRootPanel();
+		
+		currentContentView = new HighscoreView(rootPanel, SWT.NONE);
+		rootPanel.pack();
+		shell.pack();
 	}
 
 	private void createWelcomePanel() {

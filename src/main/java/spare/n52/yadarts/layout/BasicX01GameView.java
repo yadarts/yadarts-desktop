@@ -185,7 +185,7 @@ public abstract class BasicX01GameView implements
 		/*
 		 * TODO: check Configuration for existing SoundService 
 		 */
-		x01Game.registerGameListener(Services.getInterfaceImplementation(SoundService.class));
+		x01Game.registerGameListener(Services.getImplementation(SoundService.class));
 		engine.registerListener(x01Game);
 		engine.start();
 	}
@@ -416,7 +416,8 @@ public abstract class BasicX01GameView implements
 			
 			if (score.getTotalScore() == 0) {
 				try {
-					Services.getInterfaceImplementation(HighscorePersistence.class).addHighscoreEntry(x01Game.getClass(), score);
+					Services.getImplementation(HighscorePersistence.class)
+							.addHighscoreEntry(x01Game.getClass(), score);
 				} catch (PersistencyException e) {
 					logger.warn(e.getMessage(), e);
 				}

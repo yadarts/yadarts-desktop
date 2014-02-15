@@ -78,7 +78,7 @@ public class BasicSoundService implements SoundService, LineListener {
 	}
 
 	private String getSoundPackageName(){
-		return Services.getInterfaceImplementation(Configuration.class).getSoundPackage();
+		return Services.getImplementation(Configuration.class).getSoundPackage();
 	}
 
 	protected void queueSound(SoundId id) {

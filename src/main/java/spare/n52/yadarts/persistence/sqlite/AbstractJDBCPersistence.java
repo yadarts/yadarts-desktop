@@ -215,6 +215,11 @@ public abstract class AbstractJDBCPersistence implements HighscorePersistence {
 			throw new PersistencyException(e);
 		}
 	}
+	
+	@Override
+	public List<Class<? extends Game>> getSupportedGameTypes() {
+		return gameList;
+	}
 
 	private String resolveTableName(Class<? extends Game> theGame) {
 		AnnotatedGame anno = theGame.getAnnotation(AnnotatedGame.class);
