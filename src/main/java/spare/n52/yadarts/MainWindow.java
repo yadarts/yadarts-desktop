@@ -35,12 +35,14 @@ import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import spare.n52.yadarts.common.Services;
 import spare.n52.yadarts.config.Configuration;
 import spare.n52.yadarts.i18n.I18N;
 import spare.n52.yadarts.layout.GameParameter;
 import spare.n52.yadarts.layout.GameView;
 import spare.n52.yadarts.layout.NewGameDialog;
 import spare.n52.yadarts.layout.WelcomeView;
+import spare.n52.yadarts.persistence.HighscorePersistence;
 import spare.n52.yadarts.themes.Theme;
 
 public class MainWindow {
@@ -56,7 +58,7 @@ public class MainWindow {
 
 	public MainWindow(Display display, MainWindowOpenedListener l) {
 		shell = new Shell(display);
-		this.fullscreen = Configuration.Instance.instance().isAutoFullScreen();
+		this.fullscreen = Services.getInterfaceImplementation(Configuration.class).isAutoFullScreen();
 		
 		shell.setMinimumSize(800, 600);
 		shell.setText("yadarts desktop edition");
@@ -90,6 +92,8 @@ public class MainWindow {
 		} catch (InitializationException e) {
 			logger.warn(e.getMessage(), e);
 		}
+		
+		Services.shutdownDisposables();
 	}
 
 	private void resolvePriorWindowState() {

@@ -26,7 +26,6 @@ import org.junit.Test;
 
 import spare.n52.yadarts.entity.impl.PlayerImpl;
 import spare.n52.yadarts.games.Score;
-import spare.n52.yadarts.games.x01.GenericX01Game;
 import spare.n52.yadarts.games.x01.Three01Game;
 import spare.n52.yadarts.persistence.PersistedScore;
 import spare.n52.yadarts.persistence.PersistencyException;
@@ -34,37 +33,46 @@ import spare.n52.yadarts.persistence.PersistencyException;
 public class SQLitePersistenceTest {
 
 	private File theFile = new File("./test.db");
-
+	private Date now = new Date();
+	
 	@Test
 	public void testPersistency() throws PersistencyException {
 		if (theFile.exists()) {
 			theFile.delete();
 		}
 		
+		storeScore();
+		
+		storeScore();
+		
 		DummySQLitePersistence sql = new DummySQLitePersistence();
-		
-		PersistedScore score = new PersistedScore();
-		
-		score.setPlayer(new PlayerImpl("test0r"));
-		score.setThrownDarts(123);
-		Date now = new Date();
-		score.setTime(now);
-		score.setTotalTime(42);
-		
-		sql.addHighscoreEntry(Three01Game.class, score);
 		
 		List<Score> result = sql.getHighscore(Three01Game.class);
 		
-		Assert.assertTrue(result.size() == 1);
+		Assert.assertTrue(result.size() == 2);
 		
 		Score first = result.get(0);
 		
 		Assert.assertTrue(first.getPlayer().getName().equals("test0r"));
 		Assert.assertTrue(first.getDateTime().equals(now));
 		Assert.assertTrue(first.getThrownDarts() == 123);
-		Assert.assertTrue(first.getTotalTime() == 42);
+		Assert.assertTrue(first.getTotalTime() == 42);		
 	}
 	
+	private void storeScore() throws PersistencyException {
+		DummySQLitePersistence sql = new DummySQLitePersistence();
+		
+		PersistedScore score = new PersistedScore();
+		
+		score.setPlayer(new PlayerImpl("test0r"));
+		score.setThrownDarts(123);
+		
+		score.setTime(now);
+		score.setTotalTime(42);
+		
+		sql.addHighscoreEntry(Three01Game.class, score);
+	}
+
 	public class DummySQLitePersistence extends SQLitePersistence {
 
 		public DummySQLitePersistence() throws PersistencyException {

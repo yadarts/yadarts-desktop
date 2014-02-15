@@ -93,7 +93,7 @@ public abstract class AbstractJDBCPersistence implements HighscorePersistence {
 			try {
 				ensureTableExistsWithColumns(gameName, X01_COLUMNS);
 			} catch (InvalidTableStateException e) {
-				logger.warn(e.getMessage(), e);
+				logger.warn("Table {} is inconsistent (or maybe empty). Recreating.", gameName);
 				dropAndRecreateTable(gameName, X01_COLUMNS);
 			}
 		}
@@ -268,6 +268,17 @@ public abstract class AbstractJDBCPersistence implements HighscorePersistence {
 		}
 		
 		return map;
+	}
+	
+	@Override
+	public void shutdown() {
+		if (this.connection != null) {
+			try {
+				this.connection.close();
+			} catch (SQLException e) {
+				logger.warn(e.getMessage(), e);
+			}
+		}
 	}
 
 }

@@ -43,6 +43,7 @@ import org.slf4j.LoggerFactory;
 import spare.n52.yadarts.AlreadyRunningException;
 import spare.n52.yadarts.EventEngine;
 import spare.n52.yadarts.InitializationException;
+import spare.n52.yadarts.common.Services;
 import spare.n52.yadarts.entity.Player;
 import spare.n52.yadarts.entity.PointEvent;
 import spare.n52.yadarts.entity.impl.PlayerImpl;
@@ -55,6 +56,7 @@ import spare.n52.yadarts.layout.board.BoardView;
 import spare.n52.yadarts.persistence.HighscorePersistence;
 import spare.n52.yadarts.persistence.PersistencyException;
 import spare.n52.yadarts.sound.BasicSoundService;
+import spare.n52.yadarts.sound.SoundService;
 import spare.n52.yadarts.themes.BorderedControlContainer;
 import spare.n52.yadarts.themes.Theme;
 
@@ -183,7 +185,7 @@ public abstract class BasicX01GameView implements
 		/*
 		 * TODO: check Configuration for existing SoundService 
 		 */
-		x01Game.registerGameListener(new BasicSoundService());
+		x01Game.registerGameListener(Services.getInterfaceImplementation(SoundService.class));
 		engine.registerListener(x01Game);
 		engine.start();
 	}
@@ -414,7 +416,7 @@ public abstract class BasicX01GameView implements
 			
 			if (score.getTotalScore() == 0) {
 				try {
-					HighscorePersistence.Instance.instance().addHighscoreEntry(x01Game.getClass(), score);
+					Services.getInterfaceImplementation(HighscorePersistence.class).addHighscoreEntry(x01Game.getClass(), score);
 				} catch (PersistencyException e) {
 					logger.warn(e.getMessage(), e);
 				}
