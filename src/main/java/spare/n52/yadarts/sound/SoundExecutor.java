@@ -16,66 +16,45 @@
  */
 package spare.n52.yadarts.sound;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
-import java.util.Queue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import kuusisto.tinysound.TinySound;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import spare.n52.yadarts.common.Services;
 import spare.n52.yadarts.config.Configuration;
 
-public class SoundExecutorThread implements Runnable {
+public class SoundExecutor {
 
-	private static final Logger logger = LoggerFactory.getLogger(SoundExecutorThread.class);
-	private final Queue<SoundId> soundIdQueueQueue = new LinkedList<SoundId>();
-	private boolean running = true;
 	private String soundPackage;
 	private Map<SoundId, Sound> idToSoundMap = new HashMap<>();
+	private ExecutorService executor = Executors.newFixedThreadPool(3);
 	
-	public SoundExecutorThread() {
+	public SoundExecutor() {
 		TinySound.init();
 	}
 	
-	@Override
-	public void run() {
-		while (running) {
-			SoundId theSound;
-			synchronized (this) {
-				while (soundIdQueueQueue.isEmpty()) {
-					try {
-						this.wait();
-					} catch (InterruptedException e) {
-						logger.warn(e.getMessage());
-					}
-				}
-				
-				theSound = soundIdQueueQueue.poll();
+	private List<Sound> resolveSounds(List<SoundId> theSounds) {
+		List<Sound> result = new ArrayList<>(theSounds.size());
+		
+		for (SoundId sound : theSounds) {
+			if (!idToSoundMap.containsKey(sound)) {
+				idToSoundMap.put(sound, new Sound(getSoundPackageName(), sound));
 			}
 			
-			Sound sound = resolveSound(theSound);
-			
-			sound.run();
+			result.add(idToSoundMap.get(sound));
 		}
-	}
-
-	private Sound resolveSound(SoundId theSound) {
-		if (!idToSoundMap.containsKey(theSound)) {
-			idToSoundMap.put(theSound, new Sound(getSoundPackageName(), theSound));
-		}
-		
-		Sound result = idToSoundMap.get(theSound);
-		result.stop();
 		
 		return result;
 	}
 
-	public void setRunning(boolean running) {
-		this.running = running;
+	public void shutdown() {
+		this.executor.shutdown();
 		TinySound.shutdown();
 	}
 	
@@ -90,8 +69,22 @@ public class SoundExecutorThread implements Runnable {
 	}
 
 	public synchronized void add(SoundId id) {
-		this.soundIdQueueQueue.add(id);
-		this.notifyAll();
+		add(Collections.singletonList(id));
+	}
+
+	public synchronized void add(final List<SoundId> list) {
+		this.executor.submit(new Runnable() {
+
+			@Override
+			public void run() {
+				List<Sound> sounds = resolveSounds(list);
+				
+				for (Sound sound : sounds) {
+					sound.run();
+				}
+			}
+			
+		});
 	}
 
 	

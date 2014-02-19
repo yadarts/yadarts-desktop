@@ -31,6 +31,8 @@ public class Sound implements Runnable {
 	private static final String WAVE_SUFFIX_STRING = "wav";
 
 	private Music clip;
+
+	private int frameLength;
 	
     public Sound(final String resourcename, final SoundId soundId) {
     	if (soundId.equals(SoundId.None)) {
@@ -57,7 +59,6 @@ public class Sound implements Runnable {
 			 * rewind
 			 */
 			clip.play(false);
-			
 			try {
 				while (!clip.playing()) {
 					Thread.sleep(10);
@@ -70,6 +71,7 @@ public class Sound implements Runnable {
 			}
 			
 			clip.stop();
+			this.frameLength = clip.getLoopPositionByFrame();
 			clip.rewind();
 		}
 	}

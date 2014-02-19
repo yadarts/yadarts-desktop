@@ -16,8 +16,12 @@
  */
 package spare.n52.yadarts.sound;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 import spare.n52.yadarts.entity.Player;
@@ -26,16 +30,14 @@ import spare.n52.yadarts.games.Score;
 
 public class BasicSoundService implements SoundService {
 
-	private final SoundExecutorThread executor;
+	private final SoundExecutor executor;
+
+	private static final Logger logger = LoggerFactory.getLogger(BasicSoundService.class);
 
 	public static final String SOUND_THEME = "SOUND_THEME";
 
 	public BasicSoundService() {
-		executor = new SoundExecutorThread();
-		
-		Thread t = new Thread(executor);
-		t.setName(BasicSoundService.class.getSimpleName().concat("-executor"));
-		t.start();
+		executor = new SoundExecutor();
 	}
 
 	/**
@@ -45,6 +47,10 @@ public class BasicSoundService implements SoundService {
 	 */
 	protected void playSound(final SoundId id) {
 		executor.add(id);
+	}
+	
+	private void playSoundSequence(List<SoundId> list) {
+		executor.add(list);
 	}
 
 	private SoundId getSoundIdForMultiplier(final int number) {
@@ -61,7 +67,9 @@ public class BasicSoundService implements SoundService {
 	@Override
 	protected void finalize() throws Throwable {
 		super.finalize();
-		executor.setRunning(false);
+		if (this.executor != null) {
+			this.executor.shutdown();
+		}
 	}
 
 	@Override
@@ -115,21 +123,25 @@ public class BasicSoundService implements SoundService {
 
 	@Override
 	public void onPointEvent(final PointEvent event) {
-
+		playSound(SoundId.Hit);
+		
+		List<SoundId> list = new ArrayList<>();
 		final int multiplier = event.getMultiplier();
 		final int baseNumber = event.getBaseNumber();
-		playSound(SoundId.Hit);
-
+		
 		if (multiplier > 1) {
-			playSound(getSoundIdForMultiplier(multiplier));
-			playSound(SoundId.get(baseNumber));
+			list.add(getSoundIdForMultiplier(multiplier));
+			list.add(SoundId.get(baseNumber));
 			if (multiplier == 3) {
-				playSound(SoundId.Praise);
+				list.add(SoundId.Praise);
 			}
 		} else {
-			playSound(SoundId.get(baseNumber));
+			list.add(SoundId.get(baseNumber));
 		}
+		
+		playSoundSequence(list);
 	}
+
 
 	@Override
 	public void onNextPlayerPressed() {
@@ -147,8 +159,10 @@ public class BasicSoundService implements SoundService {
 
 	@Override
 	public void shutdown() {
-		if (this.executor != null) {
-			this.executor.setRunning(false);
+		try {
+			finalize();
+		} catch (Throwable e) {
+			logger.warn(e.getMessage(), e);
 		}
 	}
 
