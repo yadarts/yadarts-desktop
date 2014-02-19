@@ -16,25 +16,37 @@
  */
 package spare.n52.yadarts.sound;
 
-import org.junit.Test;
-import org.mockito.Mockito;
+import java.io.IOException;
 
-import spare.n52.yadarts.entity.PointEvent;
+import kuusisto.tinysound.Music;
+import kuusisto.tinysound.Sound;
+import kuusisto.tinysound.TinySound;
+
+import org.junit.Test;
 
 public class SoundTest {
 
 	@Test
-	public void testFilenames(){
-		
-
-		BasicSoundService soundService = new BasicSoundService();	
-		
-		PointEvent pointEvent = Mockito.mock(PointEvent.class);
-		
-		Mockito.when(pointEvent.getBaseNumber()).thenReturn(25);
-		Mockito.when(pointEvent.getMultiplier()).thenReturn(2);
-		
-		soundService.onPointEvent(pointEvent);
+	public void testFilenames() throws IOException, InterruptedException {
+		// initialize TinySound
+		TinySound.init();
+		// load a sound and music
+		// note: you can also load with Files, URLs and InputStreams
+		Music song = TinySound.loadMusic(getClass().getResource("/sounds/robot/bullseye.wav"));
+		Sound coin = TinySound.loadSound(getClass().getResource("/sounds/robot/jingle.wav"));
+		// start playing the music on loop
+		song.play(true);
+		song.playing();
+		// play the sound a few times in a loop
+		for (int i = 0; i < 20; i++) {
+			coin.play();
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+			}
+		}
+		// be sure to shutdown TinySound when done
+		TinySound.shutdown();
 	}
-	
+
 }

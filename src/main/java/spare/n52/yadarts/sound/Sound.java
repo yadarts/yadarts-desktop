@@ -16,20 +16,10 @@
  */
 package spare.n52.yadarts.sound;
 
-import java.io.ByteArrayInputStream;
-import java.io.DataInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 
-import javax.sound.sampled.AudioFormat;
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.DataLine;
-import javax.sound.sampled.LineListener;
-import javax.sound.sampled.LineUnavailableException;
-import javax.sound.sampled.SourceDataLine;
-import javax.sound.sampled.UnsupportedAudioFileException;
+import kuusisto.tinysound.Music;
+import kuusisto.tinysound.TinySound;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,123 +28,55 @@ public class Sound implements Runnable {
 	
 	private static final Logger logger = LoggerFactory.getLogger(Sound.class);
 
-    private AudioFormat format;
-    private byte[] samples;
-    private InputStream source;
 	private static final String WAVE_SUFFIX_STRING = "wav";
-	private LineListener lineListener;
+
+	private Music clip;
 	
     public Sound(final String resourcename, final SoundId soundId) {
-        try {
-        	if (soundId.equals(SoundId.None)) {
-        		logger.debug("'{}' sound selected --> skipping",soundId.name());
-        		return;
-        	}
-        	final String resourcePath = "/sounds/"+ resourcename + "/" + soundId.name().toLowerCase() + "." + WAVE_SUFFIX_STRING;
-            logger.debug("Try to load resource '{}'", resourcePath);
+    	if (soundId.equals(SoundId.None)) {
+    		logger.debug("'{}' sound selected --> skipping",soundId.name());
+    		return;
+    	}
+    	final String resourcePath = "/sounds/"+ resourcename + "/" + soundId.name().toLowerCase() + "." + WAVE_SUFFIX_STRING;
+        logger.debug("Try to load resource '{}'", resourcePath);
 
-            final URL resource = getClass().getResource(resourcePath);
-            
-            if (resource == null) {
-            	return;
-            }
-            
-            // open the audio input stream
-            final AudioInputStream stream =
-                AudioSystem.getAudioInputStream(resource.openStream());
-
-            format = stream.getFormat();
-
-            // get the audio samples
-            samples = getSamples(stream);
-            
-            source = new ByteArrayInputStream(samples);
+        final URL resource = getClass().getResource(resourcePath);
+        
+        if (resource == null) {
+        	return;
         }
-        catch (final UnsupportedAudioFileException ex) {
-            logger.warn(ex.getMessage(), ex);
-        }
-        catch (final IOException ex) {
-        	logger.warn(ex.getMessage(), ex);
-        }
-    }
-
-
-    public byte[] getSamples() {
-        return samples;
-    }
-
-    public void addLineListener(final LineListener listener){
-    	lineListener = listener;
-    }
-    
-    private byte[] getSamples(final AudioInputStream audioStream) {
-        // get the number of bytes to read
-        final int length = (int)(audioStream.getFrameLength() *
-            format.getFrameSize());
-
-        // read the entire stream
-        final byte[] samples = new byte[length];
-        final DataInputStream is = new DataInputStream(audioStream);
-        try {
-            is.readFully(samples);
-        }
-        catch (final IOException ex) {
-            ex.printStackTrace();
-        }
-
-        // return the samples
-        return samples;
+        
+        // open the audio input stream
+        clip = TinySound.loadMusic(resource);
     }
 
 	@Override
-	public void run() {
-		if (source == null) {
-			return;
+	public synchronized void run() {
+		if (clip != null) {
+			/*
+			 * rewind
+			 */
+			clip.play(false);
+			
+			try {
+				while (!clip.playing()) {
+					Thread.sleep(10);
+				}
+				while (clip.playing()) {
+					Thread.sleep(10);
+				}	
+			} catch (InterruptedException e) {
+				logger.warn(e.getMessage(), e);
+			}
+			
+			clip.stop();
+			clip.rewind();
 		}
-	      // use a short, 100ms (1/10th sec) buffer for real-time
-        // change to the sound stream
-        final int bufferSize = format.getFrameSize() *
-            Math.round(format.getSampleRate() / 10);
-        final byte[] buffer = new byte[bufferSize];
-
-        // create a line to play to
-        SourceDataLine line;
-        try {
-            final DataLine.Info info =
-                new DataLine.Info(SourceDataLine.class, format);
-            line = (SourceDataLine)AudioSystem.getLine(info);
-            if (lineListener != null) {
-            	line.addLineListener(lineListener);
-            }
-            line.open(format, bufferSize);
-        }
-        catch (final LineUnavailableException ex) {
-        	logger.warn(ex.getMessage(), ex);
-            return;
-        }
-
-        // start the line
-        line.start();
-
-        // copy data to the line
-        try {
-            int numBytesRead = 0;
-            while (numBytesRead != -1) {
-                numBytesRead =
-                    source.read(buffer, 0, buffer.length);
-                if (numBytesRead != -1) {
-                   line.write(buffer, 0, numBytesRead);
-                }
-            }
-        }
-        catch (final IOException ex) {
-        	logger.warn(ex.getMessage(), ex);
-        }
-
-        // wait until all data is played, then close the line
-        line.drain();
-        line.close();
-		
 	}
 
+    public synchronized void stop(){
+    	if (clip != null) {
+    		clip.stop();
+	    }
+	}
 }
