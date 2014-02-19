@@ -77,6 +77,10 @@
 			<id>swt-repo</id>
 			<url>https://swt-repo.googlecode.com/svn/repo/</url>
 		</repository>
+		<repository>
+			<id>yadarts-maven</id>
+			<url>https://raw.github.com/yadarts/maven/master</url>
+		</repository>
 	</repositories>
 
 	<dependencyManagement>
@@ -151,7 +155,7 @@
 				<version>${swt.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>kuusisto.tinysound</groupId>
+				<groupId>kuusisto</groupId>
 				<artifactId>tinysound</artifactId>
 				<version>1.1.1</version>
 			</dependency>
@@ -216,7 +220,7 @@
 			<artifactId>logback-classic</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>kuusisto.tinysound</groupId>
+			<groupId>kuusisto</groupId>
 			<artifactId>tinysound</artifactId>
 		</dependency>
 

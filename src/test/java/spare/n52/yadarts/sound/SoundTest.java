@@ -38,13 +38,15 @@ public class SoundTest {
 		song.play(true);
 		song.playing();
 		// play the sound a few times in a loop
-		for (int i = 0; i < 20; i++) {
+		for (int i = 0; i < 5; i++) {
 			coin.play();
 			try {
 				Thread.sleep(1000);
 			} catch (InterruptedException e) {
 			}
 		}
+		
+		song.stop();
 		// be sure to shutdown TinySound when done
 		TinySound.shutdown();
 	}
