@@ -13,8 +13,28 @@
 			<pattern>%d{ISO8601} [%t] %-5p %c: %m%n</pattern>
 		</encoder>
 	</appender>
+	
+	<appender name="file" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<!--See http://logback.qos.ch/manual/appenders.html#RollingFileAppender -->
+		<!--and http://logback.qos.ch/manual/appenders.html#TimeBasedRollingPolicy -->
+		<!--for further documentation -->
+		<File>log/yadarts-desktop.log</File><!-- ${catalina.home}/logs/52n-ses.log -->
+
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>log/yadarts-%d{yyyy-MM-dd}.log</fileNamePattern>
+			<!-- keep 30 days' worth of history -->
+			<maxHistory>30</maxHistory>
+		</rollingPolicy>
+
+		<encoder>
+			<charset>UTF-8</charset>
+			<pattern>%d{ISO8601} [%t] %-5p %c: %m%n</pattern>
+		</encoder>
+	</appender>
+	
 	<logger name="spare.n52" level="DEBUG" />
 	<root level="DEBUG">
 		<appender-ref ref="consoloro" />
+		<appender-ref ref="file" />
 	</root>
 </configuration>

@@ -33,5 +33,9 @@
 			<directory>data</directory>
 			<outputDirectory>/data</outputDirectory>
 		</fileSet>
+		<fileSet>
+			<directory>log</directory>
+			<outputDirectory>/log</outputDirectory>
+		</fileSet>
 	</fileSets>
 </assembly>
