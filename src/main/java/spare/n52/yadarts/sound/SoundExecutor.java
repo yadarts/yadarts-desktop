@@ -16,37 +16,47 @@
  */
 package spare.n52.yadarts.sound;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.Queue;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import kuusisto.tinysound.TinySound;
-
 import spare.n52.yadarts.common.Services;
 import spare.n52.yadarts.config.Configuration;
 
 public class SoundExecutor {
 
+	public static final Logger logger = LoggerFactory.getLogger(SoundExecutor.class);
 	private String soundPackage;
 	private Map<SoundId, Sound> idToSoundMap = new HashMap<>();
-	private ExecutorService executor = Executors.newFixedThreadPool(3);
+	public boolean running = true;
+	private ExecutorThread executor;
 	
 	public SoundExecutor() {
-		TinySound.init();
+		startThread();
 	}
 	
-	private List<Sound> resolveSounds(List<SoundId> theSounds) {
-		List<Sound> result = new ArrayList<>(theSounds.size());
+	private void startThread() {
+		executor = new ExecutorThread();
+		Thread t = new Thread(executor);
+		t.start();
+	}
+
+	private SoundSequence resolveSounds(List<SoundId> theSounds) {
+		SoundSequence result = new SoundSequence(theSounds.size());
 		
 		for (SoundId sound : theSounds) {
 			if (!idToSoundMap.containsKey(sound)) {
 				idToSoundMap.put(sound, new Sound(getSoundPackageName(), sound));
 			}
 			
+			logger.info("adding ID to sequence: {}", sound);
 			result.add(idToSoundMap.get(sound));
 		}
 		
@@ -54,8 +64,7 @@ public class SoundExecutor {
 	}
 
 	public void shutdown() {
-		this.executor.shutdown();
-		TinySound.shutdown();
+		this.running = false;
 	}
 	
 	private String getSoundPackageName() {
@@ -73,19 +82,67 @@ public class SoundExecutor {
 	}
 
 	public synchronized void add(final List<SoundId> list) {
-		this.executor.submit(new Runnable() {
+		SoundSequence sounds = resolveSounds(list);
+		executor.setPendingSequence(sounds);
+	}
 
-			@Override
-			public void run() {
-				List<Sound> sounds = resolveSounds(list);
+	private class ExecutorThread implements Runnable {
+
+		private Queue<SoundSequence> pending = new LinkedList<>();
+		private Object mutex = new Object();
+		private SoundSequence current;
+		private int pendingSize;
+
+		@Override
+		public void run() {
+			TinySound.init();
+			
+			while (running) {
+				synchronized (mutex) {
+					while (pending.isEmpty()) {
+						try {
+							logger.info("waiting for pending");
+							mutex.wait();
+							logger.info("got pending");
+						} catch (InterruptedException e) {
+							logger.warn(e.getMessage(), e);
+						}
+					}
+					
+					this.current = pending.poll();
+					this.pendingSize = pending.size();
+				}
 				
-				for (Sound sound : sounds) {
-					sound.run();
+				List<Sound> sounds = this.current.getSounds();
+
+				if (sounds.size() == 0) {
+					continue;
+				}
+				
+				/*
+				 * play at least the first in the sequence
+				 */
+				logger.info("playing current sequence: {}", sounds.size());
+				sounds.get(0).run();
+				for (int i = 1; i < sounds.size(); i++) {
+					if (running && this.pendingSize == this.pending.size()) {
+						sounds.get(i).run();
+					}
 				}
 			}
 			
-		});
-	}
+			TinySound.shutdown();
+		}
 
+		public void setPendingSequence(SoundSequence sounds) {
+			this.pending.add(sounds);
+			
+			synchronized (mutex) {
+				this.mutex.notifyAll();	
+			}
+			
+		}
+		
+	}
 	
 }

@@ -32,7 +32,6 @@ public class Sound implements Runnable {
 
 	private Music clip;
 
-	private int frameLength;
 	
     public Sound(final String resourcename, final SoundId soundId) {
     	if (soundId.equals(SoundId.None)) {
@@ -71,7 +70,6 @@ public class Sound implements Runnable {
 			}
 			
 			clip.stop();
-			this.frameLength = clip.getLoopPositionByFrame();
 			clip.rewind();
 		}
 	}
