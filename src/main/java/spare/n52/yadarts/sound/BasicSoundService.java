@@ -16,44 +16,28 @@
  */
 package spare.n52.yadarts.sound;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.atomic.AtomicInteger;
 
-import javax.sound.sampled.LineEvent;
-import javax.sound.sampled.LineEvent.Type;
-import javax.sound.sampled.LineListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import spare.n52.yadarts.common.Services;
-import spare.n52.yadarts.config.Configuration;
+
 import spare.n52.yadarts.entity.Player;
 import spare.n52.yadarts.entity.PointEvent;
 import spare.n52.yadarts.games.Score;
 
-public class BasicSoundService implements SoundService, LineListener {
+public class BasicSoundService implements SoundService {
 
-	private final ExecutorService executor;
-	private final Queue<SoundId> soundIdQueueQueue;
+	private final SoundExecutor executor;
+
+	private static final Logger logger = LoggerFactory.getLogger(BasicSoundService.class);
+
 	public static final String SOUND_THEME = "SOUND_THEME";
 
 	public BasicSoundService() {
-		executor = Executors.newFixedThreadPool(3, new ThreadFactory() {
-			
-			private AtomicInteger count = new AtomicInteger();
-
-			@Override
-			public Thread newThread(Runnable r) {
-				Thread t = new Thread(r);
-				t.setName(BasicSoundService.class.getSimpleName().concat("-executor-").concat(count.toString()));
-				return t;
-			}
-		});
-		soundIdQueueQueue = new LinkedList<SoundId>();
+		executor = new SoundExecutor();
 	}
 
 	/**
@@ -62,33 +46,11 @@ public class BasicSoundService implements SoundService, LineListener {
 	 * @param id
 	 */
 	protected void playSound(final SoundId id) {
-		queueSound(id);
-		playQueue();
+		executor.add(id);
 	}
-
-	protected synchronized void playQueue() {
-		//TODO check for RuntimeExceptions. Otherwise sound system breaks for this app runtime
-		if (!soundIdQueueQueue.isEmpty()) {
-			final Sound sound = new Sound(getSoundPackageName(), soundIdQueueQueue.poll());
-			sound.addLineListener(this);
-			if (executor != null) {
-				executor.execute(sound);
-			}
-		}
-	}
-
-	private String getSoundPackageName(){
-		return Services.getImplementation(Configuration.class).getSoundPackage();
-	}
-
-	protected void queueSound(final SoundId id) {
-		soundIdQueueQueue.add(id);
-	}
-
-	private void playNextSound() {
-		if (!soundIdQueueQueue.isEmpty()) {
-			playQueue();
-		}
+	
+	private void playSoundSequence(List<SoundId> list) {
+		executor.add(list);
 	}
 
 	private SoundId getSoundIdForMultiplier(final int number) {
@@ -105,7 +67,9 @@ public class BasicSoundService implements SoundService, LineListener {
 	@Override
 	protected void finalize() throws Throwable {
 		super.finalize();
-		executor.shutdown();
+		if (this.executor != null) {
+			this.executor.shutdown();
+		}
 	}
 
 	@Override
@@ -159,22 +123,25 @@ public class BasicSoundService implements SoundService, LineListener {
 
 	@Override
 	public void onPointEvent(final PointEvent event) {
-
+		playSound(SoundId.Hit);
+		
+		List<SoundId> list = new ArrayList<>();
 		final int multiplier = event.getMultiplier();
 		final int baseNumber = event.getBaseNumber();
-		queueSound(SoundId.Hit);
-
+		
 		if (multiplier > 1) {
-			queueSound(getSoundIdForMultiplier(multiplier));
-			queueSound(SoundId.get(baseNumber));
+			list.add(getSoundIdForMultiplier(multiplier));
+			list.add(SoundId.get(baseNumber));
 			if (multiplier == 3) {
-				queueSound(SoundId.Praise);
+				list.add(SoundId.Praise);
 			}
 		} else {
-			queueSound(SoundId.get(baseNumber));
+			list.add(SoundId.get(baseNumber));
 		}
-		playQueue();
+		
+		playSoundSequence(list);
 	}
+
 
 	@Override
 	public void onNextPlayerPressed() {
@@ -191,19 +158,11 @@ public class BasicSoundService implements SoundService, LineListener {
 	}
 
 	@Override
-	public void update(final LineEvent event) {
-		if (event.getType() != Type.STOP) {
-			return;
-		} else {
-			playNextSound();
-		}
-
-	}
-
-	@Override
 	public void shutdown() {
-		if (this.executor != null) {
-			this.executor.shutdown();
+		try {
+			finalize();
+		} catch (Throwable e) {
+			logger.warn(e.getMessage(), e);
 		}
 	}
 

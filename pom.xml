@@ -77,6 +77,10 @@
 			<id>swt-repo</id>
 			<url>https://swt-repo.googlecode.com/svn/repo/</url>
 		</repository>
+		<repository>
+			<id>yadarts-maven</id>
+			<url>https://raw.github.com/yadarts/maven/master</url>
+		</repository>
 	</repositories>
 
 	<dependencyManagement>
@@ -150,6 +154,11 @@
 				<artifactId>org.eclipse.swt.gtk.linux.x86_64</artifactId>
 				<version>${swt.version}</version>
 			</dependency>
+			<dependency>
+				<groupId>kuusisto</groupId>
+				<artifactId>tinysound</artifactId>
+				<version>1.1.1</version>
+			</dependency>
 
 
 			<!-- testing -->
@@ -185,14 +194,14 @@
 			<groupId>${project.groupId}</groupId>
 			<artifactId>yadarts-runtime</artifactId>
 		</dependency>
-<!-- 		<dependency> -->
-<!-- 			<groupId>${project.groupId}</groupId> -->
-<!-- 			<artifactId>yadarts-dummy-board</artifactId> -->
-<!-- 		</dependency> -->
 		<dependency>
 			<groupId>${project.groupId}</groupId>
-			<artifactId>yadarts-usb</artifactId>
+			<artifactId>yadarts-dummy-board</artifactId>
 		</dependency>
+<!-- 		<dependency> -->
+<!-- 			<groupId>${project.groupId}</groupId> -->
+<!-- 			<artifactId>yadarts-usb</artifactId> -->
+<!-- 		</dependency> -->
 		
 		<dependency>
 			<groupId>joda-time</groupId>
@@ -209,6 +218,10 @@
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>kuusisto</groupId>
+			<artifactId>tinysound</artifactId>
 		</dependency>
 
 		<!-- testing -->
