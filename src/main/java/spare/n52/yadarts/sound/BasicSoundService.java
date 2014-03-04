@@ -92,6 +92,9 @@ public class BasicSoundService implements SoundService {
 
 	@Override
 	public void onTurnFinished(final Player finishedPlayer, final Score score) {
+		if(score.getTotalScore() == 26){
+			playSound(SoundId.Classic);
+		}
 		playSound(SoundId.RemoveDarts);
 	}
 
@@ -132,7 +135,7 @@ public class BasicSoundService implements SoundService {
 		if (multiplier > 1) {
 			list.add(getSoundIdForMultiplier(multiplier));
 			list.add(SoundId.get(baseNumber));
-			if (multiplier == 3) {
+			if (multiplier == 3 && baseNumber >= 10) {
 				list.add(SoundId.Praise);
 			}
 		} else {

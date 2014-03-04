@@ -19,7 +19,7 @@ package spare.n52.yadarts.sound;
 public enum SoundId {
 	
 	Triple,Double,Single,BullsEye,y1,y2,y3,y4,y5,y6,y7,y8,y9,y10,y11,y12,y13,y14,y15,y16,y17,y18,y19,y20,y25,
-	Bust,Missed,RemoveDarts, Hit, Praise, BounceOut, PleasePressNextPlayer, None;
+	Bust,Missed,RemoveDarts, Hit, Praise, BounceOut, PleasePressNextPlayer, None, Classic;
 	
 	static SoundId get(final int i) {
 		switch (i) {
