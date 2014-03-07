@@ -48,6 +48,8 @@ import spare.n52.yadarts.common.Services;
 import spare.n52.yadarts.entity.Player;
 import spare.n52.yadarts.entity.PointEvent;
 import spare.n52.yadarts.entity.impl.PlayerImpl;
+import spare.n52.yadarts.games.AbstractGame;
+import spare.n52.yadarts.games.GameEventBus;
 import spare.n52.yadarts.games.GameStatusUpdateListener;
 import spare.n52.yadarts.games.Score;
 import spare.n52.yadarts.games.x01.GenericX01Game;
@@ -83,7 +85,7 @@ public abstract class BasicX01GameView implements
 
 	private Composite bottomBar;
 	private Label statusBar;
-	private GenericX01Game x01Game;
+	private AbstractGame x01Game;
 	private List<Player> players;
 	private PlayerTableView playerTable;
 	private int targetScore;
@@ -126,6 +128,7 @@ public abstract class BasicX01GameView implements
 						EventEngine engine = EventEngine.instance();
 						engine.shutdown();
 						engine.removeListener(x01Game);
+						GameEventBus.instance().endGame(x01Game);
 					} catch (InitializationException e1) {
 						logger.warn(e1.getMessage(), e1);
 					}
@@ -202,6 +205,9 @@ public abstract class BasicX01GameView implements
 		 */
 		x01Game.registerGameListener(Services.getImplementation(SoundService.class));
 		engine.registerListener(x01Game);
+		
+		GameEventBus.instance().startGame(x01Game);
+		
 		engine.start();
 	}
 

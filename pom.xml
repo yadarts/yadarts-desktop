@@ -111,6 +111,19 @@
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
+				<groupId>${project.groupId}.server</groupId>
+				<artifactId>all</artifactId>
+				<version>${project.version}</version>
+				<type>pom</type>
+			</dependency>
+			
+			<dependency>
+				<groupId>org.eclipse.jetty</groupId>
+				<artifactId>jetty-servlet</artifactId>
+				<version>7.4.1.v20110513</version>
+			</dependency>
+			
+			<dependency>
 				<groupId>org.slf4j</groupId>
 				<artifactId>slf4j-api</artifactId>
 				<version>1.7.5</version>
@@ -202,6 +215,16 @@
 <!-- 			<groupId>${project.groupId}</groupId> -->
 <!-- 			<artifactId>yadarts-usb</artifactId> -->
 <!-- 		</dependency> -->
+		<dependency>
+			<groupId>${project.groupId}.server</groupId>
+			<artifactId>all</artifactId>
+			<type>pom</type>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-servlet</artifactId>
+		</dependency>
 		
 		<dependency>
 			<groupId>joda-time</groupId>

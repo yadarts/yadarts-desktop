@@ -16,17 +16,26 @@
  */
 package spare.n52.yadarts;
 
+
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.servlet.DefaultServlet;
+import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.swt.widgets.Display;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.inject.servlet.GuiceFilter;
+
+import spare.n52.yadarts.common.Disposable;
+import spare.n52.yadarts.common.Services;
 import spare.n52.yadarts.splash.Splash;
+import yadarts.server.servlet.BaseServletListener;
 
 public class YadartsDesktopMain {
 	
 	private static final Logger logger = LoggerFactory.getLogger(YadartsDesktopMain.class);
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws Exception {
 		logger.info("bootstrapping yadarts desktop...");
 		final Display display = Display.getDefault();
 		new Splash(display, new Splash.SplashListener() {
@@ -44,8 +53,62 @@ public class YadartsDesktopMain {
 			@Override
 			public void onMainWindowOpened() {
 				splash.closeSelf();
+				
+				/*
+				 * init those classes which are discoverable as Disposable
+				 */
+				Services.getImplementation(Disposable.class);
 			}
 		});
+	}
+	
+	public static class JettyDisposable implements Disposable {
+		
+		private static Server server;
+
+		public JettyDisposable() {
+			new Thread(new Runnable() {
+				
+				@Override
+				public void run() {
+					try {
+						startJetty();
+					} catch (Exception e) {
+						e.printStackTrace();
+					}						
+				}
+			}).start();
+		}
+		
+
+		private static void startJetty() throws Exception {
+		      server = new Server(8081);
+		       
+		      ServletContextHandler sch = new ServletContextHandler(server, "/");
+		       
+		      sch.addEventListener(new BaseServletListener());
+		      
+		      sch.addFilter(GuiceFilter.class, "/*", null);
+		      // Must add DefaultServlet for embedded Jetty.
+		      // Failing to do this will cause 404 errors.
+		      // This is not needed if web.xml is used instead.
+		      sch.addServlet(DefaultServlet.class, "/");
+		       
+		      sch.addFilter(GuiceFilter.class, "/*", null);
+		      // Start the server
+		      server.start();
+		      server.join();		
+		}
+
+		@Override
+		public void shutdown() {
+			try {
+				server.stop();
+			} catch (Exception e) {
+				logger.warn(e.getMessage(), e);
+			}
+		}
+		
 	}
 
 }
