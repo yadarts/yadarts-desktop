@@ -36,6 +36,8 @@ public class BasicSoundService implements SoundService {
 
 	public static final String SOUND_THEME = "SOUND_THEME";
 
+	private ArrayList<Integer> pointsList = new ArrayList<>(3);
+	
 	public BasicSoundService() {
 		executor = new SoundExecutor();
 	}
@@ -92,10 +94,16 @@ public class BasicSoundService implements SoundService {
 
 	@Override
 	public void onTurnFinished(final Player finishedPlayer, final Score score) {
-		if(score.getTotalScore() == 26){
-			playSound(SoundId.Classic);
+		List<SoundId> list = new ArrayList<>();
+		if (pointsList.size() == 3) {
+
+			if (pointsList.contains(20) || pointsList.contains(1) || pointsList.contains(5)) {
+				list.add(SoundId.Classic);
+			}
+
 		}
-		playSound(SoundId.RemoveDarts);
+		list.add(SoundId.RemoveDarts);
+		playSoundSequence(list);
 	}
 
 	@Override
@@ -126,6 +134,7 @@ public class BasicSoundService implements SoundService {
 
 	@Override
 	public void onPointEvent(final PointEvent event) {
+		pointsList.add((event.getMultiplier() * event.getBaseNumber()));
 		playSound(SoundId.Hit);
 		
 		List<SoundId> list = new ArrayList<>();
@@ -140,6 +149,9 @@ public class BasicSoundService implements SoundService {
 			}
 		} else {
 			list.add(SoundId.get(baseNumber));
+			if(event.getScoreValue() > 50){
+				list.add(SoundId.Praise);
+			}
 		}
 		
 		playSoundSequence(list);
@@ -148,6 +160,7 @@ public class BasicSoundService implements SoundService {
 
 	@Override
 	public void onNextPlayerPressed() {
+		pointsList.clear();
 	}
 
 	@Override
