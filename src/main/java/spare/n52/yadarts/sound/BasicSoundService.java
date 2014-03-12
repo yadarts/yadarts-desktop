@@ -17,6 +17,7 @@
 package spare.n52.yadarts.sound;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -35,8 +36,10 @@ public class BasicSoundService implements SoundService {
 	private static final Logger logger = LoggerFactory.getLogger(BasicSoundService.class);
 
 	public static final String SOUND_THEME = "SOUND_THEME";
+	
+	public static final int singleThrowPraiseThreshold = 40;
 
-	private ArrayList<Integer> pointsList = new ArrayList<>(3);
+	private Map<Integer, Integer> pointsMap = new HashMap<>(3);
 	
 	public BasicSoundService() {
 		executor = new SoundExecutor();
@@ -95,9 +98,13 @@ public class BasicSoundService implements SoundService {
 	@Override
 	public void onTurnFinished(final Player finishedPlayer, final Score score) {
 		List<SoundId> list = new ArrayList<>();
-		if (pointsList.size() == 3) {
-
-			if (pointsList.contains(20) || pointsList.contains(1) || pointsList.contains(5)) {
+		if (pointsMap.size() == 3) {
+			
+			boolean single1Hit = (pointsMap.keySet().contains(1) && (pointsMap.get(1) == 1));
+			boolean single5Hit = (pointsMap.keySet().contains(5) && (pointsMap.get(5) == 1));
+			boolean single20Hit = (pointsMap.keySet().contains(20) && (pointsMap.get(20) == 1));
+			
+			if (single1Hit && single5Hit && single20Hit) {
 				list.add(SoundId.Classic);
 			}
 
@@ -134,7 +141,7 @@ public class BasicSoundService implements SoundService {
 
 	@Override
 	public void onPointEvent(final PointEvent event) {
-		pointsList.add((event.getMultiplier() * event.getBaseNumber()));
+		pointsMap.put(event.getBaseNumber(), event.getMultiplier());
 		playSound(SoundId.Hit);
 		
 		List<SoundId> list = new ArrayList<>();
@@ -149,7 +156,7 @@ public class BasicSoundService implements SoundService {
 			}
 		} else {
 			list.add(SoundId.get(baseNumber));
-			if(event.getScoreValue() > 50){
+			if(event.getScoreValue() >= singleThrowPraiseThreshold){
 				list.add(SoundId.Praise);
 			}
 		}
@@ -160,7 +167,7 @@ public class BasicSoundService implements SoundService {
 
 	@Override
 	public void onNextPlayerPressed() {
-		pointsList.clear();
+		pointsMap.clear();
 	}
 
 	@Override
