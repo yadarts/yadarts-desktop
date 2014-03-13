@@ -41,6 +41,8 @@ public class BasicSoundService implements SoundService {
 
 	private Map<Integer, Integer> pointsMap = new HashMap<>(3);
 	
+	private boolean bounceOutPressed;
+	
 	public BasicSoundService() {
 		executor = new SoundExecutor();
 	}
@@ -98,7 +100,7 @@ public class BasicSoundService implements SoundService {
 	@Override
 	public void onTurnFinished(final Player finishedPlayer, final Score score) {
 		List<SoundId> list = new ArrayList<>();
-		if (pointsMap.size() == 3) {
+		if (pointsMap.size() == 3 && !bounceOutPressed) {
 			
 			boolean single1Hit = (pointsMap.keySet().contains(1) && (pointsMap.get(1) == 1));
 			boolean single5Hit = (pointsMap.keySet().contains(5) && (pointsMap.get(5) == 1));
@@ -168,10 +170,12 @@ public class BasicSoundService implements SoundService {
 	@Override
 	public void onNextPlayerPressed() {
 		pointsMap.clear();
+		bounceOutPressed = false;
 	}
 
 	@Override
 	public void onBounceOutPressed() {
+		bounceOutPressed = true;
 		playSound(SoundId.BounceOut);
 	}
 
