@@ -37,7 +37,8 @@ public class BasicSoundService implements SoundService {
 
 	public static final String SOUND_THEME = "SOUND_THEME";
 	
-	public static final int singleThrowPraiseThreshold = 40;
+	public static final int lowPraiseThreshold = 30;
+	public static final int highPraiseThreshold = 50;
 
 	private Map<Integer, Integer> pointsMap = new HashMap<>(3);
 	
@@ -86,6 +87,12 @@ public class BasicSoundService implements SoundService {
 
 	@Override
 	public void onCurrentPlayerChanged(final Player currentPlayer, final Score score) {
+		pointsMap.clear();
+		bounceOutPressed = false;		
+		List<SoundId> list = new ArrayList<>();		
+		list.add(SoundId.get(currentPlayer.getName()));
+		list.add(SoundId.PleaseThrowDarts);
+		playSoundSequence(list);
 	}
 
 	@Override
@@ -107,7 +114,15 @@ public class BasicSoundService implements SoundService {
 			boolean single20Hit = (pointsMap.keySet().contains(20) && (pointsMap.get(20) == 1));
 			
 			if (single1Hit && single5Hit && single20Hit) {
-				list.add(SoundId.Classic);
+				list.add(SoundId.Upper_Classic);
+			}
+			
+			boolean single3Hit = (pointsMap.keySet().contains(3) && (pointsMap.get(3) == 1));
+			boolean single7Hit = (pointsMap.keySet().contains(7) && (pointsMap.get(7) == 1));
+			boolean single19Hit = (pointsMap.keySet().contains(19) && (pointsMap.get(19) == 1));
+			
+			if (single3Hit && single7Hit && single19Hit) {
+				list.add(SoundId.Lower_Classic);
 			}
 
 		}
@@ -126,6 +141,10 @@ public class BasicSoundService implements SoundService {
 
 	@Override
 	public void onPlayerFinished(final Player currentPlayer) {
+		List<SoundId> list = new ArrayList<>();		
+		list.add(SoundId.get(currentPlayer.getName()));
+		list.add(SoundId.IsTheWinner);
+		playSoundSequence(list);
 	}
 
 	@Override
@@ -150,17 +169,17 @@ public class BasicSoundService implements SoundService {
 		final int multiplier = event.getMultiplier();
 		final int baseNumber = event.getBaseNumber();
 		
+		int score = event.getMultiplier() * event.getBaseNumber();
+		
 		if (multiplier > 1) {
 			list.add(getSoundIdForMultiplier(multiplier));
-			list.add(SoundId.get(baseNumber));
-			if (multiplier == 3 && baseNumber >= 10) {
-				list.add(SoundId.Praise);
-			}
-		} else {
-			list.add(SoundId.get(baseNumber));
-			if(event.getScoreValue() >= singleThrowPraiseThreshold){
-				list.add(SoundId.Praise);
-			}
+		}
+		list.add(SoundId.get(baseNumber));
+		
+		if(score >= lowPraiseThreshold && score < highPraiseThreshold){
+			list.add(SoundId.Praise_low);
+		}else if(score >= highPraiseThreshold){
+			list.add(SoundId.Praise_high);			
 		}
 		
 		playSoundSequence(list);
@@ -169,8 +188,6 @@ public class BasicSoundService implements SoundService {
 
 	@Override
 	public void onNextPlayerPressed() {
-		pointsMap.clear();
-		bounceOutPressed = false;
 	}
 
 	@Override

@@ -18,7 +18,9 @@ package spare.n52.yadarts.sound;
 
 import org.mockito.Mockito;
 
+import spare.n52.yadarts.entity.Player;
 import spare.n52.yadarts.entity.PointEvent;
+import spare.n52.yadarts.games.Score;
 
 public class CopyOfSoundTest {
 
@@ -30,14 +32,32 @@ public class CopyOfSoundTest {
 		
 		PointEvent pointEvent = Mockito.mock(PointEvent.class);
 		
-		Mockito.when(pointEvent.getBaseNumber()).thenReturn(1);
-		Mockito.when(pointEvent.getMultiplier()).thenReturn(3);
+		Mockito.when(pointEvent.getBaseNumber()).thenReturn(25);
+		Mockito.when(pointEvent.getMultiplier()).thenReturn(2);
+		
+		soundService.onPointEvent(pointEvent);		
+		
+		pointEvent = Mockito.mock(PointEvent.class);
+		
+		Mockito.when(pointEvent.getBaseNumber()).thenReturn(7);
+		Mockito.when(pointEvent.getMultiplier()).thenReturn(1);
 		
 		soundService.onPointEvent(pointEvent);
 		
-		soundService = null;
+		pointEvent = Mockito.mock(PointEvent.class);
 		
-		System.gc();
+		Mockito.when(pointEvent.getBaseNumber()).thenReturn(3);
+		Mockito.when(pointEvent.getMultiplier()).thenReturn(1);
+		
+		soundService.onPointEvent(pointEvent);
+		
+		soundService.onTurnFinished(Mockito.mock(Player.class), Mockito.mock(Score.class));
+				
+		soundService.onBust(Mockito.mock(Player.class), Mockito.mock(Score.class));
+		
+//		soundService = null;
+//		
+//		System.gc();
 	}
 	
 }
