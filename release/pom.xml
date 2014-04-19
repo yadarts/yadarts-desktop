@@ -73,6 +73,11 @@
 				<artifactId>yadarts-usb</artifactId>
 				<version>${project.version}</version>
 			</dependency>
+			<dependency>
+				<groupId>${project.groupId}</groupId>
+				<artifactId>yadarts-dummy-board</artifactId>
+				<version>${project.version}</version>
+			</dependency>
 
 			<!-- SWT -->
 			<dependency>
@@ -124,10 +129,6 @@
 					<artifactId>org.eclipse.swt.gtk.linux.x86_64</artifactId>
 				</exclusion>
 			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>${project.groupId}</groupId>
-			<artifactId>yadarts-usb</artifactId>
 		</dependency>
 	</dependencies>
 
@@ -192,6 +193,37 @@
 				<dependency>
 					<groupId>org.eclipse.swt</groupId>
 					<artifactId>org.eclipse.swt.gtk.linux.x86</artifactId>
+				</dependency>
+			</dependencies>
+		</profile>
+
+		
+		<profile>
+			<id>release</id>
+			<activation>
+				<property>
+					<name>!dummyboard</name>
+				</property>
+			</activation>
+			<dependencies>
+				<dependency>
+					<groupId>${project.groupId}</groupId>
+					<artifactId>yadarts-usb</artifactId>
+				</dependency>
+
+			</dependencies>
+		</profile>		
+		<profile>
+			<id>dummyboard</id>
+			<activation>
+				<property>
+					<name>dummyboard</name>
+				</property>
+			</activation>
+			<dependencies>
+				<dependency>
+					<groupId>${project.groupId}</groupId>
+					<artifactId>yadarts-dummy-board</artifactId>
 				</dependency>
 			</dependencies>
 		</profile>
