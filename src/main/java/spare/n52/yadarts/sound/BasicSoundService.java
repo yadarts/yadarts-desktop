@@ -17,6 +17,7 @@
 package spare.n52.yadarts.sound;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -35,7 +36,14 @@ public class BasicSoundService implements SoundService {
 	private static final Logger logger = LoggerFactory.getLogger(BasicSoundService.class);
 
 	public static final String SOUND_THEME = "SOUND_THEME";
+	
+	public static final int lowPraiseThreshold = 30;
+	public static final int highPraiseThreshold = 50;
 
+	private Map<Integer, Integer> pointsMap = new HashMap<>(3);
+	
+	private boolean bounceOutPressed;
+	
 	public BasicSoundService() {
 		executor = new SoundExecutor();
 	}
@@ -79,6 +87,12 @@ public class BasicSoundService implements SoundService {
 
 	@Override
 	public void onCurrentPlayerChanged(final Player currentPlayer, final Score score) {
+		pointsMap.clear();
+		bounceOutPressed = false;		
+		List<SoundId> list = new ArrayList<>();		
+		list.add(SoundId.get(currentPlayer.getName()));
+		list.add(SoundId.PleaseThrowDarts);
+		playSoundSequence(list);
 	}
 
 	@Override
@@ -92,7 +106,28 @@ public class BasicSoundService implements SoundService {
 
 	@Override
 	public void onTurnFinished(final Player finishedPlayer, final Score score) {
-		playSound(SoundId.RemoveDarts);
+		List<SoundId> list = new ArrayList<>();
+		if (pointsMap.size() == 3 && !bounceOutPressed) {
+			
+			boolean single1Hit = (pointsMap.keySet().contains(1) && (pointsMap.get(1) == 1));
+			boolean single5Hit = (pointsMap.keySet().contains(5) && (pointsMap.get(5) == 1));
+			boolean single20Hit = (pointsMap.keySet().contains(20) && (pointsMap.get(20) == 1));
+			
+			if (single1Hit && single5Hit && single20Hit) {
+				list.add(SoundId.Upper_Classic);
+			}
+			
+			boolean single3Hit = (pointsMap.keySet().contains(3) && (pointsMap.get(3) == 1));
+			boolean single7Hit = (pointsMap.keySet().contains(7) && (pointsMap.get(7) == 1));
+			boolean single19Hit = (pointsMap.keySet().contains(19) && (pointsMap.get(19) == 1));
+			
+			if (single3Hit && single7Hit && single19Hit) {
+				list.add(SoundId.Lower_Classic);
+			}
+
+		}
+		list.add(SoundId.RemoveDarts);
+		playSoundSequence(list);
 	}
 
 	@Override
@@ -106,6 +141,10 @@ public class BasicSoundService implements SoundService {
 
 	@Override
 	public void onPlayerFinished(final Player currentPlayer) {
+		List<SoundId> list = new ArrayList<>();		
+		list.add(SoundId.get(currentPlayer.getName()));
+		list.add(SoundId.IsTheWinner);
+		playSoundSequence(list);
 	}
 
 	@Override
@@ -123,20 +162,24 @@ public class BasicSoundService implements SoundService {
 
 	@Override
 	public void onPointEvent(final PointEvent event) {
+		pointsMap.put(event.getBaseNumber(), event.getMultiplier());
 		playSound(SoundId.Hit);
 		
 		List<SoundId> list = new ArrayList<>();
 		final int multiplier = event.getMultiplier();
 		final int baseNumber = event.getBaseNumber();
 		
+		int score = event.getMultiplier() * event.getBaseNumber();
+		
 		if (multiplier > 1) {
 			list.add(getSoundIdForMultiplier(multiplier));
-			list.add(SoundId.get(baseNumber));
-			if (multiplier == 3) {
-				list.add(SoundId.Praise);
-			}
-		} else {
-			list.add(SoundId.get(baseNumber));
+		}
+		list.add(SoundId.get(baseNumber));
+		
+		if(score >= lowPraiseThreshold && score < highPraiseThreshold){
+			list.add(SoundId.Praise_low);
+		}else if(score >= highPraiseThreshold){
+			list.add(SoundId.Praise_high);			
 		}
 		
 		playSoundSequence(list);
@@ -149,6 +192,7 @@ public class BasicSoundService implements SoundService {
 
 	@Override
 	public void onBounceOutPressed() {
+		bounceOutPressed = true;
 		playSound(SoundId.BounceOut);
 	}
 
