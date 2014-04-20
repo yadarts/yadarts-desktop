@@ -119,7 +119,7 @@ public abstract class BasicX01GameView implements
 		this.targetScore = getDesiredTargetScore();
 		
 		this.wrapper = new Composite(parent, style);
-		this.wrapper.layout();
+		
 		this.wrapper.addDisposeListener(new DisposeListener() {
 			@Override
 			public void widgetDisposed(DisposeEvent e) {
@@ -156,11 +156,9 @@ public abstract class BasicX01GameView implements
 
 		initSecondRow(wrapper);
 
-		wrapper.layout();
 		wrapper.pack();
 		wrapper.setSize(parent.getSize());
 		wrapper.layout();
-		wrapper.pack();
 		
 		currentPlayer.setText(players.get(0).getName());
 

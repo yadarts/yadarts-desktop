@@ -250,7 +250,7 @@ public class MainWindow {
 		clearRootPanel();
 		
 		currentContentView = gv.initialize(rootPanel, SWT.NONE, list);
-		rootPanel.pack();
+		shell.layout();
 		
 		synchronized (this) {
 			this.currentGame.clear();
@@ -264,16 +264,15 @@ public class MainWindow {
 		clearRootPanel();
 		
 		currentContentView = new HighscoreView(rootPanel, SWT.NONE);
-		rootPanel.pack();
-		shell.pack();
+		shell.layout();
 	}
 
 	private void createWelcomePanel() {
 		clearRootPanel();
 		
 		currentContentView = new WelcomeView(rootPanel, SWT.NONE);
-		rootPanel.pack();
-		shell.pack();
+
+		shell.layout();
 	}
 
 	private void clearRootPanel() {
