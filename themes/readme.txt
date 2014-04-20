@@ -1,0 +1,1 @@
+place themes in subfolders.

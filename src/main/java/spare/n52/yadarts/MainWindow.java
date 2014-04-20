@@ -67,6 +67,8 @@ public class MainWindow {
 	private MenuItem restartGame;
 
 	public MainWindow(Display display, MainWindowOpenedListener l) {
+		Theme.setCurrentTheme("edarts-classic");
+		
 		shell = new Shell(display);
 		this.fullscreen = Services.getImplementation(Configuration.class).isAutoFullScreen();
 		
