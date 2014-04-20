@@ -17,8 +17,11 @@
 package spare.n52.yadarts;
 
 import java.io.FileNotFoundException;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.ServiceLoader;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyAdapter;
@@ -55,6 +58,13 @@ public class MainWindow {
 
 	private Composite rootPanel;
 	private Composite currentContentView;
+
+	/**
+	 * single map storing the current game and its defined parameters
+	 */
+	private Map<String, List<GameParameter<?>>> currentGame = new HashMap<>(1);
+
+	private MenuItem restartGame;
 
 	public MainWindow(Display display, MainWindowOpenedListener l) {
 		shell = new Shell(display);
@@ -156,6 +166,23 @@ public class MainWindow {
         new MenuItem(fileMenu, SWT.SEPARATOR);
         
         /*
+         * restart game item
+         */
+        restartGame = new MenuItem(fileMenu, SWT.PUSH);
+        restartGame.setText(I18N.getString("restartGame"));
+        
+        restartGame.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+            	restartLastGame();
+            }
+
+        });
+        restartGame.setEnabled(false);
+        
+        new MenuItem(fileMenu, SWT.SEPARATOR);
+        
+        /*
          * highscore menu item
          */
         MenuItem highscore = new MenuItem(fileMenu, SWT.PUSH);
@@ -188,28 +215,64 @@ public class MainWindow {
         
         shell.pack();
 	}
+	
+	protected void restartLastGame() {
+		String currentName;
+		List<GameParameter<?>> params;
+		
+		synchronized (this) {
+    		Iterator<String> it = currentGame.keySet().iterator();
+        	if (!it.hasNext()) {
+        		return;
+        	}
+        	currentName = it.next();
+        	params = currentGame.get(currentName);
+		}
+    	
+    	/*
+    	 * check existing impls and compare against the name
+    	 */
+    	ServiceLoader<GameView> l = ServiceLoader.load(GameView.class);
+    	
+    	GameView newView = null;
+		for (GameView gameView : l) {
+			if (gameView.getGameName().equals(currentName)) {
+				newView = gameView;
+			}
+		}
+    	
+		if (newView != null) {
+			createGameView(newView, params);
+		}
+	}
 
 	private void createGameView(GameView gv, List<GameParameter<?>> list) {
 		clearRootPanel();
 		
 		currentContentView = gv.initialize(rootPanel, SWT.NONE, list);
-		rootPanel.pack();
+		shell.layout();
+		
+		synchronized (this) {
+			this.currentGame.clear();
+			this.currentGame.put(gv.getGameName(), list);
+			this.restartGame.setEnabled(true);
+		}
+		
 	}
 	
 	private void createHighscoreView() {
 		clearRootPanel();
 		
 		currentContentView = new HighscoreView(rootPanel, SWT.NONE);
-		rootPanel.pack();
-		shell.pack();
+		shell.layout();
 	}
 
 	private void createWelcomePanel() {
 		clearRootPanel();
 		
 		currentContentView = new WelcomeView(rootPanel, SWT.NONE);
-		rootPanel.pack();
-		shell.pack();
+
+		shell.layout();
 	}
 
 	private void clearRootPanel() {

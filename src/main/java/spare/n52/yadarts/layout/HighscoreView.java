@@ -27,9 +27,11 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
@@ -73,16 +75,23 @@ public class HighscoreView extends Composite {
 		
 		createLayout();
 		this.pack();
+		this.setSize(parent.getSize());
+		this.layout();
 	}
 
 	private void createLayout() {
-		final Combo gameChoosers = new Combo(this, SWT.READ_ONLY);
-		gameChoosers.setLayoutData(new GridData(SWT.CENTER, SWT.TOP, false, false));
+		Composite titleBar = new Composite(this, SWT.NONE);
+		titleBar.setLayout(new RowLayout(SWT.HORIZONTAL));
+		new Label(titleBar, SWT.NONE).setText(I18N.getString("chooseHighscore").concat(":"));
+		
+		final Combo gameChoosers = new Combo(titleBar, SWT.READ_ONLY);
+		titleBar.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false));
 		
 		final String[] strings = new String[supportedGames.size()];
 		gameChoosers.setItems((String[]) supportedGames.keySet().toArray(strings));
 		
-		final Composite highscoreContainer = new Composite(this, SWT.BORDER);
+		
+		final Composite highscoreContainer = new Composite(this, SWT.NONE);
 		highscoreContainer.setLayout(new FillLayout());
 		highscoreContainer.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		
@@ -98,6 +107,7 @@ public class HighscoreView extends Composite {
 			}
 			
 		});
+		
 	}
 
 	protected void createHighscoreTable(Composite highscoreContainer,
@@ -139,6 +149,9 @@ public class HighscoreView extends Composite {
 		}
 		
 		this.pack();
+		
+		this.setSize(getParent().getSize());
+		this.layout();
 	}
 
 }

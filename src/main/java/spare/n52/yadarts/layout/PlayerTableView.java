@@ -117,7 +117,6 @@ public class PlayerTableView extends Composite {
 		for (int i = 1; i < players.size(); i++) {
 			TableItem item = table.getItem(i+1);
 			item.setFont(defaultFont);
-			
 		}
 	}
 
@@ -141,8 +140,8 @@ public class PlayerTableView extends Composite {
 					
 				}
 
-//				table.layout();
-//				table.pack();
+				table.update();
+				table.redraw();
 			}
 		});
 	}
@@ -159,8 +158,8 @@ public class PlayerTableView extends Composite {
 				item.setText(new String[] {p.getName(), Integer.toString(remaining.getTotalScore()),
 						Integer.toString(remaining.getThrownDarts())});
 				
-//				table.layout();
-//				table.pack();
+				table.update();
+				table.redraw();
 			}
 		});
 	}

@@ -19,7 +19,8 @@ package spare.n52.yadarts.sound;
 public enum SoundId {
 	
 	Triple,Double,Single,BullsEye,y1,y2,y3,y4,y5,y6,y7,y8,y9,y10,y11,y12,y13,y14,y15,y16,y17,y18,y19,y20,y25,
-	Bust,Missed,RemoveDarts, Hit, Praise, BounceOut, PleasePressNextPlayer, None;
+	Bust, Missed, RemoveDarts, Hit, Praise_low, Praise_high, BounceOut, PleasePressNextPlayer, None, Lower_Classic, Upper_Classic, DefaultPlayer, PleaseThrowDarts, IsTheWinner, 
+	Eike, Benjamin, Jan, Matthes, Dustin, Simon, Christian, Albert, Andreas, Conny, Ann, Henning, Daniel, Carsten, Holger;
 	
 	static SoundId get(final int i) {
 		switch (i) {
@@ -67,6 +68,24 @@ public enum SoundId {
 			return BullsEye;
 		default:
 			return None;
+		}
+	}
+	
+	static SoundId get(final String name) {
+		
+		switch(name){
+		case "Eike":
+			return Eike;
+		case "Benjamin":
+			return Benjamin;
+		case "Matthes":
+			return Matthes;
+		case "Jan":
+			return Jan;
+		case "Dustin":
+			return Dustin;
+		default:
+			return DefaultPlayer;
 		}
 	}
 
