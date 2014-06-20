@@ -49,8 +49,10 @@ import spare.n52.yadarts.entity.Player;
 import spare.n52.yadarts.entity.PointEvent;
 import spare.n52.yadarts.entity.impl.PlayerImpl;
 import spare.n52.yadarts.games.AbstractGame;
+import spare.n52.yadarts.games.GameAlreadyActiveException;
 import spare.n52.yadarts.games.GameEventBus;
 import spare.n52.yadarts.games.GameStatusUpdateListener;
+import spare.n52.yadarts.games.NoGameActiveException;
 import spare.n52.yadarts.games.Score;
 import spare.n52.yadarts.games.x01.GenericX01Game;
 import spare.n52.yadarts.i18n.I18N;
@@ -125,11 +127,8 @@ public abstract class BasicX01GameView implements
 			public void widgetDisposed(DisposeEvent e) {
 				if (x01Game != null) {
 					try {
-						EventEngine engine = EventEngine.instance();
-						engine.shutdown();
-						engine.removeListener(x01Game);
 						GameEventBus.instance().endGame(x01Game);
-					} catch (InitializationException e1) {
+					} catch (NoGameActiveException e1) {
 						logger.warn(e1.getMessage(), e1);
 					}
 					
@@ -194,7 +193,6 @@ public abstract class BasicX01GameView implements
 
 	private void startGame() throws InitializationException,
 			AlreadyRunningException {
-		EventEngine engine = EventEngine.instance();
 		x01Game = GenericX01Game.create(players, targetScore);
 		x01Game.registerGameListener(this);
 		
@@ -202,11 +200,13 @@ public abstract class BasicX01GameView implements
 		 * TODO: check Configuration for existing SoundService 
 		 */
 		x01Game.registerGameListener(Services.getImplementation(SoundService.class));
-		engine.registerListener(x01Game);
 		
-		GameEventBus.instance().startGame(x01Game);
+		try {
+			GameEventBus.instance().startGame(x01Game);
+		} catch (GameAlreadyActiveException e) {
+			logger.warn(e.getMessage(), e);
+		}
 		
-		engine.start();
 	}
 
 	private void initFirstRow(final Composite container) {
@@ -478,12 +478,6 @@ public abstract class BasicX01GameView implements
 		}
 
 		updateLabel(statusBar, String.format(I18N.getString("gameHasEnded"), winner.toString()));
-		
-		try {
-			EventEngine.instance().shutdown();
-		} catch (InitializationException e) {
-			logger.warn(e.getMessage(), e);
-		}
 	}
 
 	@Override
