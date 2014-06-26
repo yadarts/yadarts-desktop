@@ -40,6 +40,7 @@ import org.slf4j.LoggerFactory;
 
 import spare.n52.yadarts.common.Services;
 import spare.n52.yadarts.config.Configuration;
+import spare.n52.yadarts.games.GameEventBus;
 import spare.n52.yadarts.i18n.I18N;
 import spare.n52.yadarts.layout.GameParameter;
 import spare.n52.yadarts.layout.GameView;
@@ -67,6 +68,8 @@ public class MainWindow {
 	private MenuItem restartGame;
 
 	public MainWindow(Display display, MainWindowOpenedListener l) {
+		Theme.setCurrentTheme("edarts-classic");
+		
 		shell = new Shell(display);
 		this.fullscreen = Services.getImplementation(Configuration.class).isAutoFullScreen();
 		
@@ -98,8 +101,15 @@ public class MainWindow {
 		display.dispose();
 		
 		try {
+			/*
+			 * just to be sure: shutdown
+			 */
 			EventEngine.instance().shutdown();
-		} catch (InitializationException e) {
+			
+			if (currentContentView != null) {
+				currentContentView.dispose();
+			}
+		} catch (InitializationException | RuntimeException e) {
 			logger.warn(e.getMessage(), e);
 		}
 		
@@ -192,6 +202,21 @@ public class MainWindow {
             @Override
             public void widgetSelected(SelectionEvent e) {
             	createHighscoreView();
+            }
+        });
+        
+        new MenuItem(fileMenu, SWT.SEPARATOR);
+        
+        /*
+         * undo button
+         */
+        MenuItem undo = new MenuItem(fileMenu, SWT.PUSH);
+        undo.setText(I18N.getString("undo"));
+        
+        undo.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+            	GameEventBus.instance().undoEvent();
             }
         });
         

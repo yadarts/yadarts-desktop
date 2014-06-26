@@ -163,9 +163,9 @@ public class BasicSoundService implements SoundService {
 	@Override
 	public void onPointEvent(final PointEvent event) {
 		pointsMap.put(event.getBaseNumber(), event.getMultiplier());
-		playSound(SoundId.Hit);
 		
 		List<SoundId> list = new ArrayList<>();
+		list.add(SoundId.Hit);
 		final int multiplier = event.getMultiplier();
 		final int baseNumber = event.getBaseNumber();
 		
@@ -179,7 +179,7 @@ public class BasicSoundService implements SoundService {
 		if(score >= lowPraiseThreshold && score < highPraiseThreshold){
 			list.add(SoundId.Praise_low);
 		}else if(score >= highPraiseThreshold){
-			list.add(SoundId.Praise_high);			
+			list.add(SoundId.Praise_high);
 		}
 		
 		playSoundSequence(list);

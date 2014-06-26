@@ -93,6 +93,20 @@ public class PersistedScore implements Score, Comparable<PersistedScore> {
 	public void setPlayer(Player player) {
 		this.player = player;
 	}
+
+	@Override
+	public boolean turnHasEvents() {
+		return true;
+	}
+
+	@Override
+	public void terminateLastTurn() {
+	}
+
+	@Override
+	public boolean lastTurnTerminatedCorrect() {
+		return true;
+	}
 	
 	
 	

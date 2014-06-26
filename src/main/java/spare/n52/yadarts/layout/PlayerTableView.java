@@ -77,7 +77,7 @@ public class PlayerTableView extends Composite {
         	
 		});
         
-        GridData data = new GridData(SWT.LEFT, SWT.FILL, true, false);
+        GridData data = new GridData(SWT.FILL, SWT.FILL, true, false);
         table.setLayoutData(data);
 
 		TableColumn nameRow = new TableColumn(table, SWT.LEFT);
@@ -109,7 +109,6 @@ public class PlayerTableView extends Composite {
 		table.getColumn(0).pack();
 		table.getColumn(1).pack();
 		table.getColumn(2).pack();		
-		table.pack();
 		
 		/*
 		 * reset the font to default
@@ -118,6 +117,8 @@ public class PlayerTableView extends Composite {
 			TableItem item = table.getItem(i+1);
 			item.setFont(defaultFont);
 		}
+		
+		table.pack();
 	}
 
 	public void setCurrentPlayer(final Player p, final Score remaining) {
