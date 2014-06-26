@@ -16,6 +16,8 @@
  */
 package spare.n52.yadarts.config;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,9 +32,10 @@ import spare.n52.yadarts.sound.BasicSoundService;
 public class FileBasedConfiguration implements Configuration {
 
 	private static final Logger logger = LoggerFactory.getLogger(FileBasedConfiguration.class);
-	private static final String FILE_PATH = "/yadarts.cfg";
+	private static final String FILE_PATH = "yadarts.cfg";
 	private static final String AUTO_FULL_SCREEN = "AUTO_FULL_SCREEN";
 	private static final String CALLER_TIMEOUT = "CALLER_TIMEOUT";
+	private static final String GRAPHIC_THEME = "GRAPHIC_THEME";
 	private Properties properties;
 	
 	public FileBasedConfiguration() {
@@ -46,13 +49,24 @@ public class FileBasedConfiguration implements Configuration {
 	private void loadConfiguration() throws IOException {
 		this.properties = new Properties();
 		
-		InputStream is = getClass().getResourceAsStream(FILE_PATH);
+		File f = new File(FILE_PATH);
+		logger.info(String.format("Trying to load config from file %s", f.getAbsolutePath()));
+		
+		InputStream is;
+		if (f != null && f.exists() && f.length() > 0) {
+			is = new FileInputStream(f);
+		}
+		else {
+			is = getClass().getResourceAsStream("/".concat(FILE_PATH));
+			logger.info("Loading properties from resource: "+ "/".concat(FILE_PATH));
+		}
 		
 		if (is == null) {
-			throw new IOException(String.format("Could not open inputstream of file %s", FILE_PATH));
+			throw new IOException(String.format("Could not open inputstream of file %s", "/".concat(FILE_PATH)));
 		}
 		
 		this.properties.load(is);
+		logger.info(String.format("Properties loaded: %s", this.properties));
 	}
 
 	@Override
@@ -68,6 +82,11 @@ public class FileBasedConfiguration implements Configuration {
 	@Override
 	public void setAutoFullScreen(boolean b) {
 		storeBooleanProperty(AUTO_FULL_SCREEN, b);
+	}
+	
+	@Override
+	public String getUITheme() {
+		return properties.getProperty(GRAPHIC_THEME, "plain");
 	}
 
 
@@ -128,7 +147,7 @@ public class FileBasedConfiguration implements Configuration {
 
 	@Override
 	public String getSoundPackage() {
-		return properties.getProperty(BasicSoundService.SOUND_THEME, "yadarts");
+		return properties.getProperty(BasicSoundService.SOUND_THEME, "robot");
 	}
 
 

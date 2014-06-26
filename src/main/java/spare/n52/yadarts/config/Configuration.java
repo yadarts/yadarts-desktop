@@ -46,4 +46,10 @@ public interface Configuration {
 	 * @return the name of the sound package. Should match the name of the sub folder in "sounds".
 	 */
 	public String getSoundPackage();
+
+	
+	/**
+	 * @return the name of the UI theme
+	 */
+	public String getUITheme();
 }

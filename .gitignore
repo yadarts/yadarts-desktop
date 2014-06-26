@@ -4,3 +4,4 @@ target
 .settings
 *.db
 log/
+/yadarts.cfg

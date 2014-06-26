@@ -51,6 +51,8 @@ public class Services {
 		}
 		
 		interfaceImplementations.put(theClazz, (List<Object>) result);
+		logger.info(String.format("Implementations for %s: %s",theClazz, result));
+		logger.info(String.format("Default Implementations for %s: %s",theClazz, result.get(0)));
 		
 		return result;
 	}

@@ -68,10 +68,11 @@ public class MainWindow {
 	private MenuItem restartGame;
 
 	public MainWindow(Display display, MainWindowOpenedListener l) {
-		Theme.setCurrentTheme("edarts-classic");
+		Configuration config = Services.getImplementation(Configuration.class);
+		Theme.setCurrentTheme(config.getUITheme());
 		
 		shell = new Shell(display);
-		this.fullscreen = Services.getImplementation(Configuration.class).isAutoFullScreen();
+		this.fullscreen = config.isAutoFullScreen();
 		
 		shell.setMinimumSize(800, 600);
 		shell.setText("yadarts desktop edition");

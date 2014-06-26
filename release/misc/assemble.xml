@@ -26,8 +26,15 @@
 			<outputDirectory>/</outputDirectory>
 		</fileSet>
 		<fileSet>
+			<directory>config</directory>
+			<outputDirectory>/</outputDirectory>
+		</fileSet>
+		<fileSet>
 			<directory>themes</directory>
 			<outputDirectory>/themes</outputDirectory>
+			<excludes>
+				<exclude>.gitignore</exclude>
+			</excludes>
 		</fileSet>
 		<fileSet>
 			<directory>data</directory>
