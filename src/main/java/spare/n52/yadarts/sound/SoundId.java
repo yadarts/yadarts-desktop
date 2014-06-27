@@ -20,7 +20,7 @@ public enum SoundId {
 	
 	Triple,Double,Single,BullsEye,y1,y2,y3,y4,y5,y6,y7,y8,y9,y10,y11,y12,y13,y14,y15,y16,y17,y18,y19,y20,y25,
 	Bust, Missed, RemoveDarts, Hit, Praise_low, Praise_high, BounceOut, PleasePressNextPlayer, None, Lower_Classic, Upper_Classic, DefaultPlayer, PleaseThrowDarts, IsTheWinner, 
-	Eike, Benjamin, Jan, Matthes, Dustin, Simon, Christian, Albert, Andreas, Conny, Ann, Henning, Daniel, Carsten, Holger;
+	Eike, Benjamin, Jan, Matthes, Dustin, Simon, Christian, Albert, Andreas, Conny, Ann, Henning, Daniel, Carsten, Holger, Christoph;
 	
 	static SoundId get(final int i) {
 		switch (i) {
@@ -84,6 +84,24 @@ public enum SoundId {
 			return Jan;
 		case "Dustin":
 			return Dustin;
+		case "Christian":
+			return Christian;
+		case "Albert":
+			return Albert;
+		case "Andreas":
+			return Andreas;
+		case "Henning":
+			return Henning;
+		case "Carsten":
+			return Carsten;
+		case "Ann":
+			return Ann;
+		case "Conny":
+			return Conny;
+		case "Daniel":
+			return Daniel;
+		case "Christoph":
+			return Christoph;
 		default:
 			return DefaultPlayer;
 		}
