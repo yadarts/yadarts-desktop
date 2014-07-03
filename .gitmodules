@@ -1,0 +1,3 @@
+[submodule "src/main/resources/sounds/androttsgerman"]
+	path = src/main/resources/sounds/androttsgerman
+	url = https://github.com/bpross-52n/yadarts-sounds-androttsgerman.git
