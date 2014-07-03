@@ -125,7 +125,7 @@ public class SoundExecutor {
 				logger.info("playing current sequence: {}", sounds.size());
 				sounds.get(0).run();
 				for (int i = 1; i < sounds.size(); i++) {
-					if (running && this.pendingSize == this.pending.size()) {
+					if (running) {
 						sounds.get(i).run();
 					}
 				}
