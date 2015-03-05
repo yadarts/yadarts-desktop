@@ -1,25 +1,8 @@
-/**
- * Copyright 2014 the staff of 52°North Initiative for Geospatial Open
- * Source Software GmbH in their free time
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package spare.n52.yadarts.layout;
 
 import java.io.FileNotFoundException;
 import java.util.List;
 import java.util.Map;
-import java.util.Stack;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
@@ -45,13 +28,11 @@ import spare.n52.yadarts.InitializationException;
 import spare.n52.yadarts.common.Services;
 import spare.n52.yadarts.entity.Player;
 import spare.n52.yadarts.entity.PointEvent;
-import spare.n52.yadarts.games.AbstractGame;
 import spare.n52.yadarts.games.GameAlreadyActiveException;
 import spare.n52.yadarts.games.GameEventBus;
-import spare.n52.yadarts.games.GameStatusUpdateListener;
 import spare.n52.yadarts.games.NoGameActiveException;
 import spare.n52.yadarts.games.Score;
-import spare.n52.yadarts.games.x01.GenericX01Game;
+import spare.n52.yadarts.games.cricket.CricketGame;
 import spare.n52.yadarts.i18n.I18N;
 import spare.n52.yadarts.layout.board.BoardView;
 import spare.n52.yadarts.persistence.HighscorePersistence;
@@ -60,58 +41,65 @@ import spare.n52.yadarts.sound.SoundService;
 import spare.n52.yadarts.themes.BorderedControlContainer;
 import spare.n52.yadarts.themes.Theme;
 
-public abstract class BasicX01GameView extends AbstractGameView implements
-		GameStatusUpdateListener {
-
+public class CricketGameView extends AbstractGameView {
+	
 	private static final Logger logger = LoggerFactory
-			.getLogger(BasicX01GameView.class);
+			.getLogger(CricketGameView.class);
 	
-	private Label currentScore;
-	private BoardView theBoard;
-	private Label currentPlayer;
-	private Label turnThrows;
-	private Label turnScore;
-	private Label finishingCombinationsLabel;
-	private Label finishingCombinations;
-	private Composite leftBar;
-	private Composite rightBar;
-
-	private Composite bottomBar;
-	private Label statusBar;
-	private AbstractGame x01Game;
+	public static final String PLAYERS_PARAMETER = "playersInput";
 	private List<Player> players;
-	private PlayerTableView playerTable;
-	private int targetScore;
-	private Label roundLabel;
-	private Image background;
 	private Composite wrapper;
-	/**
-	 * stores the turnScore for the currently throwing player
-	 */
-	private final Stack<PointEvent> turnScoreMemory = new Stack<>();
-	
-	/**
-	 * @return the X01 score (e.g. 701)
-	 */
-	protected abstract int getDesiredTargetScore();
-	
+	protected CricketGame gameInstance;
+
+	private Image background;
+
+	private BoardView theBoard;
+
+	private BorderedControlContainer leftBar;
+
+	private BorderedControlContainer rightBar;
+
+	private BorderedControlContainer bottomBar;
+
+	protected Label currentPlayer;
+
+	protected Label turnThrows;
+
+	protected Label turnScore;
+
+	protected Label currentScore;
+
+	protected Label finishingCombinationsLabel;
+
+	protected Label finishingCombinations;
+
+	protected Label roundLabel;
+
+	protected PlayerTableView playerTable;
+
+	protected Label statusBar;
+
 	@Override
-	public Composite initialize(Composite parent, int style, List<GameParameter<?>> inputValues) {
+	public String getGameName() {
+		return "Cricket";
+	}
+
+	@Override
+	public Composite initialize(Composite parent, int style,
+			List<GameParameter<?>> inputValues) {
 		this.players = resolvePlayers(inputValues);
 		if (this.players == null) {
 			throw new IllegalStateException("No players found!");
 		}
-		
-		this.targetScore = getDesiredTargetScore();
 		
 		this.wrapper = new Composite(parent, style);
 		
 		this.wrapper.addDisposeListener(new DisposeListener() {
 			@Override
 			public void widgetDisposed(DisposeEvent e) {
-				if (x01Game != null) {
+				if (gameInstance != null) {
 					try {
-						GameEventBus.instance().endGame(x01Game);
+						GameEventBus.instance().endGame(gameInstance);
 					} catch (NoGameActiveException e1) {
 						logger.warn(e1.getMessage(), e1);
 					}
@@ -153,24 +141,23 @@ public abstract class BasicX01GameView extends AbstractGameView implements
 		
 		return this.wrapper;
 	}
-
-
+	
 	private void startGame() throws InitializationException,
-			AlreadyRunningException {
-		x01Game = GenericX01Game.create(players, targetScore);
-		x01Game.registerGameListener(this);
+	AlreadyRunningException {
+		gameInstance = new CricketGame(players);
+		gameInstance.registerGameListener(this);
 		
 		/*
 		 * TODO: check Configuration for existing SoundService 
 		 */
-		x01Game.registerGameListener(Services.getImplementation(SoundService.class));
+		gameInstance.registerGameListener(Services.getImplementation(SoundService.class));
 		
 		try {
-			GameEventBus.instance().startGame(x01Game);
+			GameEventBus.instance().startGame(gameInstance);
 		} catch (GameAlreadyActiveException e) {
 			logger.warn(e.getMessage(), e);
 		}
-		
+
 	}
 
 	private void initFirstRow(final Composite container) {
@@ -218,7 +205,7 @@ public abstract class BasicX01GameView extends AbstractGameView implements
 				currentScore = new Label(rightBarContainer, SWT.NONE);
 				currentScore.setFont(new Font(getDisplay(), new FontData(FONT, LARGE_FONT,
 						SWT.NONE)));
-				currentScore.setText(Integer.toString(getDesiredTargetScore()));
+				currentScore.setText(Integer.toString(0));
 				
 				finishingCombinationsLabel = new Label(rightBarContainer, SWT.UNDERLINE_SINGLE);
 				finishingCombinationsLabel.setText(I18N.getString("finishingCombinations").concat(":"));
@@ -243,7 +230,7 @@ public abstract class BasicX01GameView extends AbstractGameView implements
 
 	private void createLeftBar(Composite container) {
 		leftBar = new BorderedControlContainer(container, SWT.NONE) {
-			
+
 			@Override
 			protected Control createContents(Composite parent) {
 				Composite leftBarContainer = new Composite(parent, SWT.NONE);
@@ -259,7 +246,7 @@ public abstract class BasicX01GameView extends AbstractGameView implements
 						SWT.NONE)));
 				
 				new Label(leftBarContainer, SWT.UNDERLINE_SINGLE).setText(I18N.getString("theTurnIsOn").concat(":"));
-				playerTable = new PlayerTableView(leftBarContainer, SWT.NONE, players, targetScore);
+				playerTable = new PlayerTableView(leftBarContainer, SWT.NONE, players, 0);
 				final GridData data = new GridData(SWT.FILL, SWT.FILL, true, false);
 				playerTable.setLayoutData(data);
 
@@ -297,14 +284,14 @@ public abstract class BasicX01GameView extends AbstractGameView implements
 		bottomBar.setLayoutData(leftBarData);
 
 	}
-
+	
+	
 	@Override
 	public void onCurrentPlayerChanged(final Player p, final Score remaining) {
 		playerTable.setCurrentPlayer(p, remaining);
 		updateLabel(this.wrapper, currentPlayer, p.getName());
 		updateLabel(this.wrapper, turnThrows, "");
 		updateLabel(this.wrapper, turnScore,"");
-		turnScoreMemory.clear();
 		onRemainingScoreForPlayer(p, remaining);
 		theBoard.removeAllArrows();
 	}
@@ -320,7 +307,6 @@ public abstract class BasicX01GameView extends AbstractGameView implements
 
 	@Override
 	public void onPointEvent(final PointEvent event) {
-		turnScoreMemory.push(event);
 		processPointEvent(Integer.toString(event.getScoreValue()));
 		theBoard.onPointEvent(event);
 	}
@@ -337,17 +323,12 @@ public abstract class BasicX01GameView extends AbstractGameView implements
 				} else {
 					result = eventValueString;
 				}
-				updateLabel(wrapper, turnScore, getSum(turnScoreMemory));
+				Map<Player, Score> scores = gameInstance.getScores();
+				updateLabel(wrapper, turnScore, 
+						Integer.toString(scores.get(gameInstance.getCurrentPlayer()).getTotalScore()));
 				updateLabel(wrapper, turnThrows, result);
 			}
 
-			private String getSum(final Stack<PointEvent> turnScoreMemory) {
-				int sum = 0;
-				for (final PointEvent pointEvent : turnScoreMemory) {
-					sum += pointEvent.getScoreValue();
-				}
-				return Integer.toString(sum);
-			}
 		});
 	}
 
@@ -356,8 +337,8 @@ public abstract class BasicX01GameView extends AbstractGameView implements
 		logger.info("+++++++++++++++++++");
 		logger.info("Round {} started!", rounds);
 		logger.info("+++++++++++++++++++");
-		updateLabel(this.wrapper, statusBar, String.format(I18N.getString("roundStarted"), rounds));
-		updateLabel(this.wrapper, roundLabel, Integer.toString(rounds));
+		updateLabel(wrapper, statusBar, String.format(I18N.getString("roundStarted"), rounds));
+		updateLabel(wrapper, roundLabel, Integer.toString(rounds));
 	}
 
 	@Override
@@ -387,7 +368,7 @@ public abstract class BasicX01GameView extends AbstractGameView implements
 	public void onTurnFinished(Player finishedPlayer, Score remainingScore) {
 		logger.info("Player {} finished the turn. Remaining points: {}",
 				finishedPlayer, remainingScore.getTotalScore());
-		updateLabel(this.wrapper, statusBar, String.format(
+		updateLabel(wrapper, statusBar, String.format(
 				I18N.getString("playerFinishedTurn"),
 				finishedPlayer.getName(), remainingScore.getTotalScore()));
 	}
@@ -396,21 +377,21 @@ public abstract class BasicX01GameView extends AbstractGameView implements
 	public void onRemainingScoreForPlayer(Player currentPlayer, Score remainingScore) {
 		logger.info("Player {}'s remaining points: {}", currentPlayer,
 				remainingScore.getTotalScore());
-		updateLabel(this.wrapper, currentScore, Integer.toString(remainingScore.getTotalScore()));
+		updateLabel(wrapper, currentScore, Integer.toString(remainingScore.getTotalScore()));
 		playerTable.setRemainingScore(currentPlayer, remainingScore);
 	}
 
 	@Override
 	public void requestNextPlayerEvent() {
 		logger.info("Please press 'Next Player'!");
-		updateLabel(this.wrapper, statusBar, I18N.getString("requestNextPlayer"));
+		updateLabel(wrapper, statusBar, I18N.getString("requestNextPlayer"));
 	}
 
 	@Override
 	public void onPlayerFinished(Player currentPlayer) {
 		logger.info("Player {} finished!!!!!!! You are a Dart god!",
 				currentPlayer);
-		updateLabel(this.wrapper, statusBar, String.format(I18N.getString("playerFinished"), currentPlayer.getName()));
+		updateLabel(wrapper, statusBar, String.format(I18N.getString("playerFinished"), currentPlayer.getName()));
 	}
 
 	@Override
@@ -424,14 +405,14 @@ public abstract class BasicX01GameView extends AbstractGameView implements
 			if (score.getTotalScore() == 0) {
 				try {
 					Services.getImplementation(HighscorePersistence.class)
-							.addHighscoreEntry(x01Game.getClass(), score);
+							.addHighscoreEntry(gameInstance.getClass(), score);
 				} catch (PersistencyException e) {
 					logger.warn(e.getMessage(), e);
 				}
 			}
 		}
 
-		updateLabel(this.wrapper, statusBar, String.format(I18N.getString("gameHasEnded"), winner.toString()));
+		updateLabel(wrapper, statusBar, String.format(I18N.getString("gameHasEnded"), winner.toString()));
 	}
 
 	@Override
@@ -441,7 +422,6 @@ public abstract class BasicX01GameView extends AbstractGameView implements
 
 	@Override
 	public void onBounceOutPressed() {
-		turnScoreMemory.pop();
 		processPointEvent(BOUNCE_OUT);
 		theBoard.removeLastHit();
 	}
