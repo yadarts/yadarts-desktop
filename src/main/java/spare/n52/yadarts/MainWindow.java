@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.ServiceLoader;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.SWTException;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -32,6 +33,8 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
@@ -72,6 +75,12 @@ public class MainWindow {
 		Theme.setCurrentTheme(config.getUITheme());
 		
 		shell = new Shell(display);
+		shell.addListener(SWT.Close, new Listener() {
+		      public void handleEvent(Event event) {
+		        event.doit = false;
+		        shutdown();
+		      }
+		    });
 		this.fullscreen = config.isAutoFullScreen();
 		
 		shell.setMinimumSize(800, 600);
@@ -99,7 +108,15 @@ public class MainWindow {
 				display.sleep();
 			}
 		}
-		display.dispose();
+		shutdown();
+	}
+
+	private void shutdown() {
+		try {
+			shell.getDisplay().dispose();
+		}
+		catch (SWTException e) {
+		}
 		
 		try {
 			/*
@@ -110,6 +127,8 @@ public class MainWindow {
 			if (currentContentView != null) {
 				currentContentView.dispose();
 			}
+			
+			GameEventBus.instance().shutdown();
 		} catch (InitializationException | RuntimeException e) {
 			logger.warn(e.getMessage(), e);
 		}
