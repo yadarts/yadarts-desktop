@@ -180,15 +180,7 @@ public class MainWindow {
         newGame.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-            	Map<GameView, List<GameParameter<?>>> theNewGame = NewGameDialog.create(shell).open();
-            	
-            	if (theNewGame != null && !theNewGame.isEmpty()) {
-
-            		for (GameView gv : theNewGame.keySet()) {
-    					createGameView(gv, theNewGame.get(gv));
-    				}
-            		
-            	}
+            	createNewGameDialog();
             	
             }
         });
@@ -291,7 +283,7 @@ public class MainWindow {
 		}
 	}
 
-	private void createGameView(GameView gv, List<GameParameter<?>> list) {
+	public void createGameView(GameView gv, List<GameParameter<?>> list) {
 		clearRootPanel();
 		
 		currentContentView = gv.initialize(rootPanel, SWT.NONE, list);
@@ -315,7 +307,7 @@ public class MainWindow {
 	private void createWelcomePanel() {
 		clearRootPanel();
 		
-		currentContentView = new WelcomeView(rootPanel, SWT.NONE);
+		currentContentView = new WelcomeView(rootPanel, SWT.NONE, this);
 
 		shell.layout();
 	}
@@ -348,5 +340,17 @@ public class MainWindow {
 
 		void onMainWindowOpened();
 
+	}
+
+	public void createNewGameDialog() {
+		Map<GameView, List<GameParameter<?>>> theNewGame = NewGameDialog.create(shell).open();
+    	
+    	if (theNewGame != null && !theNewGame.isEmpty()) {
+
+    		for (GameView gv : theNewGame.keySet()) {
+				createGameView(gv, theNewGame.get(gv));
+			}
+    		
+    	}		
 	}
 }
