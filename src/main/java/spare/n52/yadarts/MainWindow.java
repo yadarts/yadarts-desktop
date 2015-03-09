@@ -49,7 +49,7 @@ import spare.n52.yadarts.layout.GameParameter;
 import spare.n52.yadarts.layout.GameView;
 import spare.n52.yadarts.layout.HighscoreView;
 import spare.n52.yadarts.layout.NewGameDialog;
-import spare.n52.yadarts.layout.WelcomeView;
+import spare.n52.yadarts.layout.home.WelcomeView;
 import spare.n52.yadarts.themes.Theme;
 
 public class MainWindow {
@@ -69,6 +69,8 @@ public class MainWindow {
 	private Map<String, List<GameParameter<?>>> currentGame = new HashMap<>(1);
 
 	private MenuItem restartGame;
+
+	private Menu menuBar;
 
 	public MainWindow(Display display, MainWindowOpenedListener l) {
 		Configuration config = Services.getImplementation(Configuration.class);
@@ -92,11 +94,11 @@ public class MainWindow {
 
 		shell.open();
 		
+		resolvePriorWindowState();
+
 		if (this.fullscreen) {
-			shell.setFullScreen(this.fullscreen);
-		}
-		else {
-			resolvePriorWindowState();
+			this.fullscreen = false;
+			switchFullscreenState();
 		}
 
 		l.onMainWindowOpened();
@@ -154,8 +156,8 @@ public class MainWindow {
 		}
 
 		FillLayout layout = new FillLayout();
-		layout.marginHeight = 5;
-		layout.marginWidth = 5;
+		layout.marginHeight = 0;
+		layout.marginWidth = 0;
 		shell.setLayout(layout);
 		
 		rootPanel = new Composite(shell, SWT.NONE);
@@ -164,7 +166,7 @@ public class MainWindow {
 		
 		createWelcomePanel();
 
-        Menu menuBar = new Menu(shell, SWT.BAR);
+        menuBar = new Menu(shell, SWT.BAR);
         MenuItem cascadeFileMenu = new MenuItem(menuBar, SWT.CASCADE);
         cascadeFileMenu.setText(I18N.getString("File"));
         
@@ -243,14 +245,19 @@ public class MainWindow {
         exitItem.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                shell.getDisplay().dispose();
-                System.exit(0);
+                exit();
             }
+
         });
         
         shell.setMenuBar(menuBar);
         
         shell.pack();
+	}
+	
+	public void exit() {
+		shell.getDisplay().dispose();
+        System.exit(0);
 	}
 	
 	protected void restartLastGame() {
@@ -287,7 +294,7 @@ public class MainWindow {
 		clearRootPanel();
 		
 		currentContentView = gv.initialize(rootPanel, SWT.NONE, list);
-		shell.layout();
+		shell.layout(true, true);
 		
 		synchronized (this) {
 			this.currentGame.clear();
@@ -297,11 +304,11 @@ public class MainWindow {
 		
 	}
 	
-	private void createHighscoreView() {
+	public void createHighscoreView() {
 		clearRootPanel();
 		
 		currentContentView = new HighscoreView(rootPanel, SWT.NONE);
-		shell.layout();
+		shell.layout(true, true);
 	}
 
 	private void createWelcomePanel() {
@@ -334,6 +341,8 @@ public class MainWindow {
 	protected void switchFullscreenState() {
 		this.fullscreen = !this.fullscreen;
 		shell.setFullScreen(fullscreen);
+		menuBar.setVisible(!this.fullscreen);
+		shell.layout(true, true);
 	}
 
 	public static interface MainWindowOpenedListener {

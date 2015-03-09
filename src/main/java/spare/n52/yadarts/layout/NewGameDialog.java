@@ -68,7 +68,7 @@ public class NewGameDialog extends Dialog {
 	}
 
 	private NewGameDialog(Shell parent) {
-		super(parent);
+		super(parent, SWT.ON_TOP);
 		availableGames = GameView.AvailableGames.get();
 	}
 
