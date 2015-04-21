@@ -65,6 +65,9 @@ public class SoundExecutor {
 
 	public void shutdown() {
 		this.running = false;
+		synchronized (executor.mutex) {
+			executor.mutex.notifyAll();
+		}
 	}
 	
 	private String getSoundPackageName() {
@@ -91,7 +94,6 @@ public class SoundExecutor {
 		private Queue<SoundSequence> pending = new LinkedList<>();
 		private Object mutex = new Object();
 		private SoundSequence current;
-		private int pendingSize;
 
 		@Override
 		public void run() {
@@ -99,7 +101,7 @@ public class SoundExecutor {
 			
 			while (running) {
 				synchronized (mutex) {
-					while (pending.isEmpty()) {
+					while (pending.isEmpty() && running) {
 						try {
 							logger.info("waiting for pending");
 							mutex.wait();
@@ -110,7 +112,10 @@ public class SoundExecutor {
 					}
 					
 					this.current = pending.poll();
-					this.pendingSize = pending.size();
+				}
+				
+				if (!running) {
+					break;
 				}
 				
 				List<Sound> sounds = this.current.getSounds();
