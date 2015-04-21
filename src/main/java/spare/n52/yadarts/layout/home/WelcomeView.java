@@ -32,9 +32,9 @@ import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,10 +45,9 @@ public class WelcomeView extends Composite {
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(WelcomeView.class);
 
-	private Label imageHolder;
+	private Canvas imageHolder;
 	
 	private Image image;
-	private Image background;
 	private MenuImage logo;
 	
 	private Cursor cursorHand;
@@ -59,7 +58,6 @@ public class WelcomeView extends Composite {
 	private double targetScale;
 
 	private int xStart;
-
 	private int yStart;
 
 	private MenuImage activeImage;
@@ -73,9 +71,6 @@ public class WelcomeView extends Composite {
 		
 		this.mainWindow = mw;
 		
-		background = new Image(getDisplay(), getClass().getResourceAsStream(
-				"/images/background.jpg"));
-
 		image = new Image(getDisplay(), getClass().getResourceAsStream(
 				"/images/mm_bg.png"));
 		
@@ -115,9 +110,7 @@ public class WelcomeView extends Composite {
 
 		
 		this.setLayout(new FillLayout());
-		this.setBackgroundMode(SWT.INHERIT_FORCE);
-		this.setBackgroundImage(background);
-		imageHolder = new Label(this, SWT.NONE);
+		imageHolder = new Canvas(this, SWT.INHERIT_FORCE);
 		imageHolder.addListener(SWT.Resize, new Listener() {
 			public void handleEvent(Event e) {
 				calculateBounds();

@@ -16,7 +16,6 @@
  */
 package spare.n52.yadarts;
 
-import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -29,8 +28,11 @@ import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
@@ -50,9 +52,11 @@ import spare.n52.yadarts.layout.GameView;
 import spare.n52.yadarts.layout.HighscoreView;
 import spare.n52.yadarts.layout.NewGameDialog;
 import spare.n52.yadarts.layout.home.WelcomeView;
+import spare.n52.yadarts.layout.menu.TopMenu;
 import spare.n52.yadarts.themes.Theme;
 
 public class MainWindow {
+    
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(MainWindow.class);
@@ -71,6 +75,10 @@ public class MainWindow {
 	private MenuItem restartGame;
 
 	private Menu menuBar;
+
+	private Composite rootWrapper;
+
+	private Composite customMenu;
 
 	public MainWindow(Display display, MainWindowOpenedListener l) {
 		Configuration config = Services.getImplementation(Configuration.class);
@@ -149,20 +157,27 @@ public class MainWindow {
 	}
 
 	protected void initLayout() {
-		try {
-			shell.setBackgroundImage(Theme.getCurrentTheme().getBackground(shell.getDisplay()));
-		} catch (FileNotFoundException e1) {
-			logger.warn(e1.getMessage(), e1);
-		}
-
+//			shell.setBackgroundImage(Theme.getCurrentTheme().getBackground(shell.getDisplay()));
+		shell.setBackgroundImage(new Image(shell.getDisplay(), getClass().getResourceAsStream("/images/background.jpg")));
+		shell.setBackgroundMode(SWT.INHERIT_FORCE);
+		
 		FillLayout layout = new FillLayout();
 		layout.marginHeight = 0;
 		layout.marginWidth = 0;
 		shell.setLayout(layout);
 		
-		rootPanel = new Composite(shell, SWT.NONE);
-		FillLayout glayout = new FillLayout();
-		rootPanel.setLayout(glayout);
+		rootWrapper = new Composite(shell, SWT.INHERIT_FORCE);
+		GridLayout wrapperLayout = new GridLayout();
+		wrapperLayout.numColumns = 1;
+		wrapperLayout.verticalSpacing = 0;
+		wrapperLayout.horizontalSpacing = 0;
+		wrapperLayout.marginHeight = 0;
+		wrapperLayout.marginWidth = 0;
+		rootWrapper.setLayout(wrapperLayout);
+		
+//		createCustomMenu();
+		
+		createRootPanel();
 		
 		createWelcomePanel();
 
@@ -254,7 +269,27 @@ public class MainWindow {
         
         shell.pack();
 	}
+
+	public void createRootPanel() {
+		rootPanel = new Composite(rootWrapper, SWT.INHERIT_FORCE);
+		rootPanel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		FillLayout glayout = new FillLayout();
+		rootPanel.setLayout(glayout);
+	}
 	
+	private void createCustomMenu() {
+		if (customMenu != null) {
+			customMenu.dispose();
+		}
+		
+		customMenu = new TopMenu(rootWrapper, SWT.INHERIT_FORCE, this);
+		customMenu.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+	}
+	
+	private void enableCustomMenu() {
+		customMenu.pack();
+	}
+
 	public void exit() {
 		shell.getDisplay().dispose();
         System.exit(0);
@@ -293,7 +328,9 @@ public class MainWindow {
 	public void createGameView(GameView gv, List<GameParameter<?>> list) {
 		clearRootPanel();
 		
-		currentContentView = gv.initialize(rootPanel, SWT.NONE, list);
+		createCustomMenu();
+		currentContentView = gv.initialize(rootPanel, SWT.INHERIT_FORCE, list);
+		enableCustomMenu();
 		shell.layout(true, true);
 		
 		synchronized (this) {
@@ -306,7 +343,8 @@ public class MainWindow {
 	
 	public void createHighscoreView() {
 		clearRootPanel();
-		
+
+		createCustomMenu();
 		currentContentView = new HighscoreView(rootPanel, SWT.NONE);
 		shell.layout(true, true);
 	}
@@ -314,15 +352,22 @@ public class MainWindow {
 	private void createWelcomePanel() {
 		clearRootPanel();
 		
-		currentContentView = new WelcomeView(rootPanel, SWT.NONE, this);
-
+		currentContentView = new WelcomeView(rootPanel, SWT.INHERIT_FORCE, this);
+		
 		shell.layout();
 	}
 
 	private void clearRootPanel() {
 		if (currentContentView != null) {
 			currentContentView.dispose();
-		}		
+		}
+		if (customMenu != null) {
+			customMenu.dispose();
+		}
+		
+		rootPanel.dispose();
+		
+		createRootPanel();
 	}
 
 	private void appendKeyListeners() {

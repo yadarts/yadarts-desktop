@@ -16,8 +16,12 @@
  */
 package spare.n52.yadarts.layout.home;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Display;
+
+import spare.n52.yadarts.layout.util.ImageUtil;
 
 public class MenuImage {
 
@@ -27,11 +31,31 @@ public class MenuImage {
 	private int yStart;
 	private int[] scaledBounds;
 	
+	public MenuImage(String fileName, Display d, int targetHeight) {
+		this(fileName, d, 0, 0, targetHeight);
+	}
+	
+	public MenuImage(String fileName, Display d, int xStart, int yStart, int targetHeight) {
+		this(createScaledImage(new Image(d, MenuImage.class.getResourceAsStream(
+				String.format("/images/%s.png", fileName))), targetHeight),
+				createScaledImage(new Image(d,MenuImage.class.getResourceAsStream(
+						String.format("/images/%s_active.png", fileName))), targetHeight),
+						xStart, yStart);
+	}
+	
+	private static Image createScaledImage(Image img, int targetHeight) {
+		if (targetHeight != SWT.DEFAULT) {
+			Rectangle bounds = img.getBounds();
+			float scale = targetHeight / (float) bounds.height;
+			
+			Image targetImg = ImageUtil.resizeUsingImageData(img, scale);
+			return targetImg;
+		}
+		return img;
+	}
+
 	public MenuImage(String fileName, Display d, int xStart, int yStart) {
-		this(new Image(d, MenuImage.class.getResourceAsStream(
-				String.format("/images/%s.png", fileName))),
-				new Image(d,MenuImage.class.getResourceAsStream(
-						String.format("/images/%s_active.png", fileName))), xStart, yStart);
+		this(fileName, d, xStart, yStart, SWT.DEFAULT);
 	}
 	
 	public MenuImage(Image image, Image activeImage, int xStart, int yStart) {
@@ -59,6 +83,16 @@ public class MenuImage {
 		this.scaledBounds[1] = globalYStart + (int) (yStart/targetScale);
 		this.scaledBounds[2] = globalXStart + (int) (xStart/targetScale) + (int) (image.getBounds().width / targetScale);
 		this.scaledBounds[3] = globalYStart + (int) (yStart/targetScale) + (int) (image.getBounds().height / targetScale);
+	}
+
+	public void dispose() {
+		if (this.activeImage != null && !this.activeImage.isDisposed()) {
+			this.activeImage.dispose();
+		}
+		
+		if (this.image != null && !this.image.isDisposed()) {
+			this.image.dispose();
+		}
 	}
 	
 	

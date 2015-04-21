@@ -16,7 +16,6 @@
  */
 package spare.n52.yadarts.layout;
 
-import java.io.FileNotFoundException;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
@@ -26,7 +25,6 @@ import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
@@ -58,7 +56,6 @@ import spare.n52.yadarts.persistence.HighscorePersistence;
 import spare.n52.yadarts.persistence.PersistencyException;
 import spare.n52.yadarts.sound.SoundService;
 import spare.n52.yadarts.themes.BorderedControlContainer;
-import spare.n52.yadarts.themes.Theme;
 
 public abstract class BasicX01GameView extends AbstractGameView implements
 		GameStatusUpdateListener {
@@ -83,7 +80,6 @@ public abstract class BasicX01GameView extends AbstractGameView implements
 	private PlayerTableView playerTable;
 	private int targetScore;
 	private Label roundLabel;
-	private Image background;
 	private Composite wrapper;
 	/**
 	 * stores the turnScore for the currently throwing player
@@ -104,7 +100,7 @@ public abstract class BasicX01GameView extends AbstractGameView implements
 		
 		this.targetScore = getDesiredTargetScore();
 		
-		this.wrapper = new Composite(parent, style);
+		this.wrapper = new Composite(parent, SWT.INHERIT_FORCE);
 		
 		this.wrapper.addDisposeListener(new DisposeListener() {
 			@Override
@@ -120,14 +116,14 @@ public abstract class BasicX01GameView extends AbstractGameView implements
 			}
 		});
 		
-		try {
-			background = Theme.getCurrentTheme().getBackground(wrapper.getDisplay());
-		} catch (final FileNotFoundException e1) {
-			logger.warn(e1.getMessage(), e1);
-			throw new IllegalStateException("The theme does not provide a valid background resource");
-		}
+//		try {
+//			background = Theme.getCurrentTheme().getBackground(wrapper.getDisplay());
+//		} catch (final FileNotFoundException e1) {
+//			logger.warn(e1.getMessage(), e1);
+//			throw new IllegalStateException("The theme does not provide a valid background resource");
+//		}
 		
-		wrapper.setBackgroundImage(background);
+//		wrapper.setBackgroundImage(background);
 		
 		FormLayout formLayout = new FormLayout();
 		formLayout.marginHeight = 0;
@@ -140,7 +136,7 @@ public abstract class BasicX01GameView extends AbstractGameView implements
 		initSecondRow(wrapper);
 
 		wrapper.pack();
-		wrapper.setSize(parent.getSize());
+//		wrapper.setSize(parent.getSize());
 		wrapper.layout();
 		
 		currentPlayer.setText(players.get(0).getName());
@@ -176,7 +172,7 @@ public abstract class BasicX01GameView extends AbstractGameView implements
 	private void initFirstRow(final Composite container) {
 		createLeftBar(container);
 
-		theBoard = new BoardView(container, SWT.NONE);
+		theBoard = new BoardView(container, SWT.INHERIT_FORCE);
 		FormData theBoardData = new FormData();
 		theBoardData.top = new FormAttachment(0);
 		theBoardData.left = new FormAttachment(leftBar);
