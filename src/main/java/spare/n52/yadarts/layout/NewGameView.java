@@ -37,78 +37,48 @@ import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Dialog;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.Text;
 
+import spare.n52.yadarts.MainWindow;
 import spare.n52.yadarts.i18n.I18N;
 import spare.n52.yadarts.layout.GameParameter.Bounds;
 
 /**
- * A sophisticated dialog class that dynamically creates
+ * A sophisticated composite class that dynamically creates
  * UI input fields based on the required parameters of the
  * available games (see {@link GameView.AvailableGames})
  */
-public class NewGameDialog extends Dialog {
+public class NewGameView extends Composite {
 
-	private Shell shell;
 	private Combo comboDropDown;
 	private List<GameView> availableGames;
 	private Composite gameSpecificAreaStack;
 	private StackLayout gameSpecificAreaStackLayout = new StackLayout();
-	private Map<GameView, List<GameParameter<?>>> result;
 	private List<GameLayout> gameLayouts = new ArrayList<>();
 	protected GameLayout currentLayout;
+	private MainWindow mainWindow;
 
-	public static NewGameDialog create(Shell shell) {
-		return new NewGameDialog(shell);
-	}
-
-	private NewGameDialog(Shell parent) {
-		super(parent, SWT.ON_TOP);
+	public NewGameView(Composite parent, int style, MainWindow mw) {
+		super(parent, style);
 		availableGames = GameView.AvailableGames.get();
+		this.mainWindow = mw;
+		createContents();
+		this.pack();
+		this.layout(true, true);
 	}
 
-	/**
-	 * Creates a singleton map of {@link GameView} and
-	 * compatible {@link GameParameter}s. The params
-	 * are filled via the values of the dialogs UI.
-	 * the resulting {@link GameView} shalled be
-	 * {@link GameView#initialize(Composite, int, List)} with
-	 * the provided list of {@link GameParameter}
-	 * 
-	 * @return a singleton map of {@link GameView} and compatible {@link GameParameter}s.
-	 */
-	public Map<GameView, List<GameParameter<?>>> open() {
-		createContents();
-		shell.open();
-		shell.layout();
-		Display display = getParent().getDisplay();
-		
-		while (!shell.isDisposed()) {
-			if (!display.readAndDispatch()) {
-				display.sleep();
-			}
-		}
-		
-		return result;
-	}
 
 	protected void createContents() {
-		shell = new Shell(getParent(), SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
-		shell.setText(I18N.getString("newGame"));
-		shell.setSize(600, 400);
 		
 		GridLayout rl = new GridLayout(1, true);
-		shell.setLayout(rl);
+		this.setLayout(rl);
 
 		/*
 		 * which game?
 		 */
-		Composite comboDropDownRow = new Composite(shell, SWT.NONE);
+		Composite comboDropDownRow = new Composite(this, SWT.NONE);
 		comboDropDownRow.setLayout(new RowLayout(SWT.HORIZONTAL));
 		comboDropDownRow.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false));
 		
@@ -132,7 +102,7 @@ public class NewGameDialog extends Dialog {
 		 * stack layout for each game area
 		 */
 		
-		gameSpecificAreaStack = new Composite(shell, SWT.BORDER);
+		gameSpecificAreaStack = new Composite(this, SWT.BORDER);
 		gameSpecificAreaStack.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		gameSpecificAreaStack.setLayout(gameSpecificAreaStackLayout);
 		
@@ -151,7 +121,7 @@ public class NewGameDialog extends Dialog {
 		/*
 		 * ok button
 		 */
-		Button okButton = new Button(shell, SWT.PUSH);
+		Button okButton = new Button(this, SWT.PUSH);
 		okButton.setText(I18N.getString("start"));
 		okButton.setLayoutData(new GridData(SWT.RIGHT, SWT.BOTTOM, false, false));
 		okButton.addSelectionListener(new SelectionAdapter() {
@@ -160,8 +130,15 @@ public class NewGameDialog extends Dialog {
 			public void widgetSelected(SelectionEvent e) {
 				super.widgetSelected(e);
 				List<GameParameter<?>> params = currentLayout.computeFilledParameters();
-				result = Collections.singletonMap(currentLayout.game, params);
-				shell.dispose();
+				Map<GameView, List<GameParameter<?>>> theNewGame = Collections.singletonMap(currentLayout.game, params);
+				
+				if (theNewGame != null && !theNewGame.isEmpty()) {
+
+					for (GameView gv : theNewGame.keySet()) {
+						mainWindow.createGameView(gv, theNewGame.get(gv));
+					}
+
+				}	
 			}
 			
 		});

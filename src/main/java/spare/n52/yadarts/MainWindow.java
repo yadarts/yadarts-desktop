@@ -50,9 +50,9 @@ import spare.n52.yadarts.i18n.I18N;
 import spare.n52.yadarts.layout.GameParameter;
 import spare.n52.yadarts.layout.GameView;
 import spare.n52.yadarts.layout.HighscoreView;
-import spare.n52.yadarts.layout.NewGameDialog;
+import spare.n52.yadarts.layout.NewGameView;
 import spare.n52.yadarts.layout.home.WelcomeView;
-import spare.n52.yadarts.layout.menu.TopMenu;
+import spare.n52.yadarts.layout.menu.CustomMenu;
 import spare.n52.yadarts.themes.Theme;
 
 public class MainWindow {
@@ -197,7 +197,7 @@ public class MainWindow {
         newGame.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-            	createNewGameDialog();
+            	createNewGameView();
             	
             }
         });
@@ -282,7 +282,7 @@ public class MainWindow {
 			customMenu.dispose();
 		}
 		
-		customMenu = new TopMenu(rootWrapper, SWT.INHERIT_FORCE, this);
+		customMenu = new CustomMenu(rootWrapper, SWT.INHERIT_FORCE, this);
 		customMenu.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 	}
 	
@@ -354,7 +354,7 @@ public class MainWindow {
 		
 		currentContentView = new WelcomeView(rootPanel, SWT.INHERIT_FORCE, this);
 		
-		shell.layout();
+		rootWrapper.layout();
 	}
 
 	private void clearRootPanel() {
@@ -368,6 +368,7 @@ public class MainWindow {
 		rootPanel.dispose();
 		
 		createRootPanel();
+		rootWrapper.layout();
 	}
 
 	private void appendKeyListeners() {
@@ -396,15 +397,12 @@ public class MainWindow {
 
 	}
 
-	public void createNewGameDialog() {
-		Map<GameView, List<GameParameter<?>>> theNewGame = NewGameDialog.create(shell).open();
-    	
-    	if (theNewGame != null && !theNewGame.isEmpty()) {
-
-    		for (GameView gv : theNewGame.keySet()) {
-				createGameView(gv, theNewGame.get(gv));
-			}
-    		
-    	}		
+	public void createNewGameView() {
+		clearRootPanel();
+		
+		createCustomMenu();
+		currentContentView = new NewGameView(rootPanel, SWT.INHERIT_FORCE, this);
+		
+		rootWrapper.layout(true, true);
 	}
 }
