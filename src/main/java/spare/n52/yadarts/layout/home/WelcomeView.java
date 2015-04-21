@@ -87,7 +87,7 @@ public class WelcomeView extends Composite {
 		this.menuImagesHandlers.put(newGame, new Listener() {
 			@Override
 			public void handleEvent(Event event) {
-				mainWindow.createNewGameDialog();				
+				mainWindow.createNewGameView();				
 			}
 		});
 		this.menuImagesHandlers.put(highscore, new Listener() {

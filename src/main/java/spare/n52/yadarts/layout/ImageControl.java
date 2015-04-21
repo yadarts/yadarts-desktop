@@ -17,6 +17,8 @@
 package spare.n52.yadarts.layout;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Point;
@@ -34,6 +36,7 @@ public class ImageControl extends Composite {
 	protected boolean active;
 	private Cursor cursorHand;
 	private Cursor cursorArrow;
+	private ClickListener clickListener;
 
 	public ImageControl(Composite parent, int style) {
 		super(parent, style);
@@ -55,10 +58,23 @@ public class ImageControl extends Composite {
 		});
 
 		/* Listen for click events */
-		addListener(SWT.MouseDown, new Listener() {
+		addMouseListener(new MouseListener() {
+			private long startClick;
+
 			@Override
-			public void handleEvent(Event e) {
-				System.out.println("Click");
+			public void mouseUp(MouseEvent e) {
+				if (System.currentTimeMillis() - startClick <= 200) {
+					handleButtonClick(e);					
+				}
+			}
+			
+			@Override
+			public void mouseDown(MouseEvent e) {
+				startClick = System.currentTimeMillis();
+			}
+			
+			@Override
+			public void mouseDoubleClick(MouseEvent e) {
 			}
 		});
 		
@@ -82,6 +98,12 @@ public class ImageControl extends Composite {
 		
 		cursorHand = new Cursor(parent.getDisplay(), SWT.CURSOR_HAND);
 		cursorArrow = new Cursor(parent.getDisplay(), SWT.CURSOR_ARROW);
+	}
+
+	protected void handleButtonClick(MouseEvent e) {
+		if (this.clickListener != null) {
+			this.clickListener.onClickEvent();
+		}
 	}
 
 	private void paintControl(Event event) {
@@ -112,6 +134,16 @@ public class ImageControl extends Composite {
 			overallHeight = hHint;
 
 		return new Point(overallWidth, overallHeight);
+	}
+	
+	public void setClickListener(ClickListener clickListener2) {
+		this.clickListener = clickListener2;
+	}
+	
+	public static interface ClickListener {
+		
+		void onClickEvent();
+		
 	}
 
 }
