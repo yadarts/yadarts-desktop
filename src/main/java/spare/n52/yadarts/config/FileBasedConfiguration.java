@@ -49,7 +49,22 @@ public class FileBasedConfiguration implements Configuration {
 	private void loadConfiguration() throws IOException {
 		this.properties = new Properties();
 		
-		File f = new File(FILE_PATH);
+		File userHome = new File(System.getProperty("user.home"));
+		
+		File f = null;
+		if (userHome != null && userHome.exists()) {
+			File configDir = new File(userHome, ".yadarts");
+			if (!configDir.exists()) {
+				configDir.mkdirs();
+			}
+			f = new File(configDir, FILE_PATH);	
+		}
+		
+		if (f == null || !f.exists()) {
+			logger.info("No yadarts.cfg in user.home found..");
+			f = new File(FILE_PATH);
+		}
+		
 		logger.info(String.format("Trying to load config from file %s", f.getAbsolutePath()));
 		
 		InputStream is;
