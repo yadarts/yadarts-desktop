@@ -49,11 +49,11 @@ public class PlayerTableView extends Composite {
 		this.players = players;
 
 		this.setLayout(new GridLayout());
-		this.setBackgroundMode(SWT.INHERIT_FORCE);
-		
-		if (parent.getBackgroundImage() != null) {
-			this.setBackgroundImage(parent.getBackgroundImage());
-		}
+//		this.setBackgroundMode(SWT.INHERIT_FORCE);
+//		
+//		if (parent.getBackgroundImage() != null) {
+//			this.setBackgroundImage(parent.getBackgroundImage());
+//		}
 
 		this.defaultFont = new Font(getDisplay(), "Arial", 14, SWT.NONE);
 		this.highlightFont = new Font(getDisplay(), "Arial", 14, SWT.BOLD);
@@ -64,8 +64,8 @@ public class PlayerTableView extends Composite {
 
 	private void initTable(String targetScore) {
         table = new Table(this, SWT.NO_FOCUS | SWT.HIDE_SELECTION );
-        table.setBackgroundMode(SWT.INHERIT_FORCE);
-        table.setBackgroundImage(this.getBackgroundImage());
+//        table.setBackgroundMode(SWT.INHERIT_FORCE);
+//        table.setBackgroundImage(this.getBackgroundImage());
         table.setLinesVisible(false);
         table.setHeaderVisible(false);
         table.addSelectionListener(new SelectionAdapter() {
