@@ -52,26 +52,29 @@ public class CricketPlayerTableView extends Composite {
 		this.players = players;
 
 		this.setLayout(new GridLayout());
-		this.setBackgroundMode(SWT.INHERIT_FORCE);
-		
-		if (parent.getBackgroundImage() != null) {
-			this.setBackgroundImage(parent.getBackgroundImage());
-		}
+//		this.setBackgroundMode(SWT.INHERIT_FORCE);
+//		
+//		if (parent.getBackgroundImage() != null) {
+//			this.setBackgroundImage(parent.getBackgroundImage());
+//		}
 
 		this.defaultFont = new Font(getDisplay(), "Arial", 14, SWT.NONE);
 		this.highlightFont = new Font(getDisplay(), "Arial", 14, SWT.BOLD);
 		this.highlightFontBigger = new Font(getDisplay(), "Arial", 16, SWT.BOLD);
 
 		initTable();
-		this.layout();
+//		this.pack();
+//		this.layout(true, true);
 		
 		setCurrentPlayer(players.get(0));
+		
+		this.layout(true);
 	}
 
 	private void initTable() {
         table = new Table(this, SWT.NO_FOCUS | SWT.HIDE_SELECTION );
-        table.setBackgroundMode(SWT.INHERIT_FORCE);
-        table.setBackgroundImage(this.getBackgroundImage());
+//        table.setBackgroundMode(SWT.INHERIT_FORCE);
+//        table.setBackgroundImage(this.getBackgroundImage());
         table.setLinesVisible(false);
         table.setHeaderVisible(false);
         table.addSelectionListener(new SelectionAdapter() {
@@ -121,8 +124,8 @@ public class CricketPlayerTableView extends Composite {
 		}
 		
 		
-		table.pack();
-		table.layout();
+//		table.pack();
+//		table.layout();
 		
 		headerItem.setFont(defaultFont);
 		scoreItem.setText(createScoreRow(0));

@@ -135,9 +135,9 @@ public abstract class BasicX01GameView extends AbstractGameView implements
 
 		initSecondRow(wrapper);
 
-		wrapper.pack();
-//		wrapper.setSize(parent.getSize());
-		wrapper.layout();
+//		wrapper.pack();
+		wrapper.setSize(parent.getSize());
+//		wrapper.layout();
 		
 		currentPlayer.setText(players.get(0).getName());
 
@@ -243,7 +243,7 @@ public abstract class BasicX01GameView extends AbstractGameView implements
 			@Override
 			protected Control createContents(Composite parent) {
 				Composite leftBarContainer = new Composite(parent, SWT.NONE);
-				leftBarContainer.setBackgroundMode(SWT.INHERIT_FORCE);
+//				leftBarContainer.setBackgroundMode(SWT.INHERIT_FORCE);
 				
 				GridLayout leftBarLayout = new GridLayout(1, true);
 				leftBarContainer.setLayout(leftBarLayout);

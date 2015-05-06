@@ -74,9 +74,9 @@ public class HighscoreView extends Composite {
 		}
 		
 		createLayout();
-		this.pack();
-		this.setSize(parent.getSize());
-		this.layout();
+//		this.pack();
+//		this.setSize(parent.getSize());
+//		this.layout();
 	}
 
 	private void createLayout() {
@@ -148,10 +148,10 @@ public class HighscoreView extends Composite {
 			table.getColumn (i).pack ();
 		}
 		
-		this.pack();
-		
-		this.setSize(getParent().getSize());
-		this.layout();
+//		this.pack();
+//		
+//		this.setSize(getParent().getSize());
+//		this.layout();
 	}
 
 }

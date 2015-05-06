@@ -329,8 +329,10 @@ public class MainWindow {
 		clearRootPanel();
 		
 		createCustomMenu();
-		currentContentView = gv.initialize(rootPanel, SWT.INHERIT_FORCE, list);
+		currentContentView = gv.initialize(rootPanel, SWT.NONE, list);
 		enableCustomMenu();
+		
+		shell.pack(true);
 		shell.layout(true, true);
 		
 		synchronized (this) {

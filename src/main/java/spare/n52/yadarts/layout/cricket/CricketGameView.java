@@ -127,9 +127,9 @@ public class CricketGameView extends AbstractGameView {
 
 		initSecondRow(wrapper);
 
-		wrapper.pack();
+//		wrapper.pack();
 		wrapper.setSize(parent.getSize());
-		wrapper.layout();
+//		wrapper.layout(true, true);
 
 		try {
 			startGame();
