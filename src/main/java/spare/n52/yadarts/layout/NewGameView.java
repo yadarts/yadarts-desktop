@@ -30,6 +30,7 @@ import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -37,7 +38,6 @@ import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.Text;
 
@@ -52,6 +52,7 @@ import spare.n52.yadarts.layout.GameParameter.Bounds;
  */
 public class NewGameView extends Composite {
 
+	private static final RGB LIGHT_GRAY = new RGB(220, 220, 220);
 	private Combo comboDropDown;
 	private List<GameView> availableGames;
 	private Composite gameSpecificAreaStack;
@@ -82,7 +83,7 @@ public class NewGameView extends Composite {
 		comboDropDownRow.setLayout(new RowLayout(SWT.HORIZONTAL));
 		comboDropDownRow.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false));
 		
-		new Label(comboDropDownRow, SWT.NONE).setText(I18N.getString("selectGame").concat(":"));
+		ColoredLabel.create(comboDropDownRow, SWT.NONE, LIGHT_GRAY).setText(I18N.getString("selectGame").concat(":"));
 		
 		comboDropDown = new Combo(comboDropDownRow, SWT.READ_ONLY);
 		comboDropDown.setItems(createItems());
@@ -196,7 +197,7 @@ public class NewGameView extends Composite {
 			/*
 			 * define a nice headline
 			 */
-			new Label(contentContainer, SWT.NONE).setText(I18N.getString("newGame").concat(": ").concat(this.game.getGameName()));
+			ColoredLabel.create(contentContainer, SWT.NONE, LIGHT_GRAY).setText(I18N.getString("newGame").concat(": ").concat(this.game.getGameName()));
 			
 			for (final GameParameter<?> param : this.game.getInputParameters()) {
 				createParameterView(param, contentContainer);
@@ -235,7 +236,7 @@ public class NewGameView extends Composite {
 		 */
 		private void createStaticParameterView(final GameParameter<?> param,
 				final Composite contentContainer) {
-			new Label(contentContainer, SWT.NONE).setText(I18N.getString(param.getName()));
+			ColoredLabel.create(contentContainer, SWT.NONE, LIGHT_GRAY).setText(I18N.getString(param.getName()));
 			
 			parameterInputs.put(param, new Stack<Text>());
 
@@ -263,7 +264,7 @@ public class NewGameView extends Composite {
 			
 			Composite spinnerContainer = new Composite(contentContainer, SWT.NONE);
 			spinnerContainer.setLayout(new RowLayout());
-			new Label(spinnerContainer, SWT.NONE).setText(I18N.getString(param.getName()));
+			ColoredLabel.create(spinnerContainer, SWT.NONE, LIGHT_GRAY).setText(I18N.getString(param.getName()));
 			
 			final Spinner spinner = new Spinner(spinnerContainer, SWT.READ_ONLY);
 			spinner.setMaximum(param.getBounds().getMax());
