@@ -17,10 +17,12 @@
 package spare.n52.yadarts.layout.menu;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.RGB;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
 
 import spare.n52.yadarts.MainWindow;
 import spare.n52.yadarts.layout.ImageControl;
@@ -31,12 +33,30 @@ public class CustomMenu extends Composite {
 	public CustomMenu(Composite parent, int style, final MainWindow mw) {
 		super(parent, style);
 		
+		GridLayout gl = new GridLayout(1, true);
+		gl.marginHeight = 0;
+		gl.marginWidth = 0;
+		this.setLayout(gl);
+
+		Composite hLine = new Composite(this, SWT.NONE);
+		hLine.setBackground(new Color(getDisplay(), new RGB(0, 0, 0)));
+		GridData gd = new GridData();
+		gd.grabExcessHorizontalSpace = true;
+		gd.heightHint = 2;
+		gd.horizontalAlignment = SWT.FILL;
+		hLine.setLayoutData(gd);
+		
+		Composite wrapper = new Composite(this, SWT.NONE);
+		GridData gd2 = new GridData();
+		gd2.horizontalAlignment = SWT.FILL;
+		gd2.grabExcessHorizontalSpace = true;
+		
 		RowLayout rl = new RowLayout();
 		rl.marginWidth = 5;
 		rl.spacing = 10;
-		this.setLayout(rl);
+		wrapper.setLayout(rl);
 		
-		ImageControl newGame = new ImageControl(this, SWT.NONE);
+		ImageControl newGame = new ImageControl(wrapper, SWT.NONE);
 		newGame.setImage(new MenuImage("new_game", getDisplay(), 25));
 		newGame.setClickListener(new ImageControl.ClickListener() {
 			
@@ -45,7 +65,7 @@ public class CustomMenu extends Composite {
 			}
 		});
 		
-		ImageControl highscore = new ImageControl(this, SWT.NONE);
+		ImageControl highscore = new ImageControl(wrapper, SWT.NONE);
 		highscore.setImage(new MenuImage("highscore", getDisplay(), 25));
 		highscore.setClickListener(new ImageControl.ClickListener() {
 			
@@ -54,7 +74,7 @@ public class CustomMenu extends Composite {
 			}
 		});
 		
-		ImageControl exit = new ImageControl(this, SWT.NONE);
+		ImageControl exit = new ImageControl(wrapper, SWT.NONE);
 		exit.setImage(new MenuImage("exit", getDisplay(), 25));
 		exit.setClickListener(new ImageControl.ClickListener() {
 			
