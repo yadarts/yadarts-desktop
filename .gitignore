@@ -5,3 +5,4 @@ target
 *.db
 log/
 /yadarts.cfg
+/src/main/resources/sounds/newspeechtts/
