@@ -24,8 +24,6 @@ import java.util.ServiceLoader;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTException;
-import org.eclipse.swt.events.KeyAdapter;
-import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
@@ -56,135 +54,135 @@ import spare.n52.yadarts.layout.menu.CustomMenu;
 import spare.n52.yadarts.themes.Theme;
 
 public class MainWindow {
-    
 
-	private static final Logger logger = LoggerFactory
-			.getLogger(MainWindow.class);
-	
-	private Shell shell;
-	private boolean fullscreen;
+    private static final Logger logger = LoggerFactory
+            .getLogger(MainWindow.class);
 
-	private Composite rootPanel;
-	private Composite currentContentView;
+    private Shell shell;
+    private boolean fullscreen;
 
-	/**
-	 * single map storing the current game and its defined parameters
-	 */
-	private Map<String, List<GameParameter<?>>> currentGame = new HashMap<>(1);
+    private Composite rootPanel;
+    private Composite currentContentView;
 
-	private MenuItem restartGame;
+    /**
+     * single map storing the current game and its defined parameters
+     */
+    private Map<String, List<GameParameter<?>>> currentGame = new HashMap<>(1);
 
-	private Menu menuBar;
+    private MenuItem restartGame;
 
-	private Composite rootWrapper;
+    private Menu menuBar;
 
-	private Composite customMenu;
+    private Composite rootWrapper;
 
-	public MainWindow(Display display, MainWindowOpenedListener l) {
-		Configuration config = Services.getImplementation(Configuration.class);
-		Theme.setCurrentTheme(config.getUITheme());
-		
-		shell = new Shell(display);
-		shell.addListener(SWT.Close, new Listener() {
-		      public void handleEvent(Event event) {
-		        event.doit = false;
-		        shutdown();
-		      }
-		    });
-		this.fullscreen = config.isAutoFullScreen();
-		
-		shell.setMinimumSize(800, 600);
-		shell.setText("yadarts desktop edition");
-		
-		initLayout();
+    private Composite customMenu;
+    private final Display display;
 
-		appendKeyListeners();
+    public MainWindow(Display display, MainWindowOpenedListener l) {
+        Configuration config = Services.getImplementation(Configuration.class);
+        Theme.setCurrentTheme(config.getUITheme());
 
-		shell.open();
-		
-		resolvePriorWindowState();
+        this.display = display;
+        
+        shell = new Shell(display);
+        shell.addListener(SWT.Close, new Listener() {
+            public void handleEvent(Event event) {
+                event.doit = false;
+                shutdown();
+            }
+        });
+        this.fullscreen = config.isAutoFullScreen();
 
-		if (this.fullscreen) {
-			this.fullscreen = false;
-			switchFullscreenState();
-		}
+        shell.setMinimumSize(800, 600);
+        shell.setText("yadarts desktop edition");
 
-		l.onMainWindowOpened();
+        initLayout();
 
-		logger.info("bootstrapping finished!");
+        appendKeyListeners();
 
-		while (!shell.isDisposed()) {
-			if (!display.readAndDispatch()) {
-				display.sleep();
-			}
-		}
-		shutdown();
-	}
+        shell.open();
 
-	private void shutdown() {
-		try {
-			shell.getDisplay().dispose();
-		}
-		catch (SWTException e) {
-		}
-		
-		try {
-			/*
+        resolvePriorWindowState();
+
+        if (this.fullscreen) {
+            this.fullscreen = false;
+            switchFullscreenState();
+        }
+
+        l.onMainWindowOpened();
+
+        logger.info("bootstrapping finished!");
+
+        while (!shell.isDisposed()) {
+            if (!display.readAndDispatch()) {
+                display.sleep();
+            }
+        }
+        shutdown();
+    }
+
+    private void shutdown() {
+        try {
+            shell.getDisplay().dispose();
+        } catch (SWTException e) {
+        }
+
+        try {
+            /*
 			 * just to be sure: shutdown
-			 */
-			EventEngine.instance().shutdown();
-			
-			if (currentContentView != null) {
-				currentContentView.dispose();
-			}
-			
-			GameEventBus.instance().shutdown();
-		} catch (InitializationException | RuntimeException e) {
-			logger.warn(e.getMessage(), e);
-		}
-		
-		Services.shutdownDisposables();
-	}
+             */
+            EventEngine.instance().shutdown();
 
-	private void resolvePriorWindowState() {
-		shell.setSize(1280, 720);
-		
-		Rectangle splashBounds = shell.getBounds();
-		Rectangle displayBounds = shell.getDisplay().getPrimaryMonitor().getBounds();
-		int x = (displayBounds.width - splashBounds.width) / 2;
-		int y = (displayBounds.height - splashBounds.height) / 2;
-		shell.setLocation(x, y);
-	}
+            if (currentContentView != null) {
+                currentContentView.dispose();
+            }
 
-	protected void initLayout() {
+            GameEventBus.instance().shutdown();
+        } catch (InitializationException | RuntimeException e) {
+            logger.warn(e.getMessage(), e);
+        }
+
+        Services.shutdownDisposables();
+    }
+
+    private void resolvePriorWindowState() {
+        shell.setSize(1280, 720);
+
+        Rectangle splashBounds = shell.getBounds();
+        Rectangle displayBounds = shell.getDisplay().getPrimaryMonitor().getBounds();
+        int x = (displayBounds.width - splashBounds.width) / 2;
+        int y = (displayBounds.height - splashBounds.height) / 2;
+        shell.setLocation(x, y);
+    }
+
+    protected void initLayout() {
 //			shell.setBackgroundImage(Theme.getCurrentTheme().getBackground(shell.getDisplay()));
-		shell.setBackgroundImage(new Image(shell.getDisplay(), getClass().getResourceAsStream("/images/background.jpg")));
-		shell.setBackgroundMode(SWT.INHERIT_FORCE);
-		
-		FillLayout layout = new FillLayout();
-		layout.marginHeight = 0;
-		layout.marginWidth = 0;
-		shell.setLayout(layout);
-		
-		rootWrapper = new Composite(shell, SWT.INHERIT_FORCE);
-		GridLayout wrapperLayout = new GridLayout();
-		wrapperLayout.numColumns = 1;
-		wrapperLayout.verticalSpacing = 0;
-		wrapperLayout.horizontalSpacing = 0;
-		wrapperLayout.marginHeight = 0;
-		wrapperLayout.marginWidth = 0;
-		rootWrapper.setLayout(wrapperLayout);
-		
+        shell.setBackgroundImage(new Image(shell.getDisplay(), getClass().getResourceAsStream("/images/background.jpg")));
+        shell.setBackgroundMode(SWT.INHERIT_FORCE);
+
+        FillLayout layout = new FillLayout();
+        layout.marginHeight = 0;
+        layout.marginWidth = 0;
+        shell.setLayout(layout);
+
+        rootWrapper = new Composite(shell, SWT.INHERIT_FORCE);
+        GridLayout wrapperLayout = new GridLayout();
+        wrapperLayout.numColumns = 1;
+        wrapperLayout.verticalSpacing = 0;
+        wrapperLayout.horizontalSpacing = 0;
+        wrapperLayout.marginHeight = 0;
+        wrapperLayout.marginWidth = 0;
+        rootWrapper.setLayout(wrapperLayout);
+
 //		createCustomMenu();
-		
-		createRootPanel();
-		
-		createWelcomePanel();
+        createRootPanel();
+
+        createWelcomePanel();
 
         menuBar = new Menu(shell, SWT.BAR);
         MenuItem cascadeFileMenu = new MenuItem(menuBar, SWT.CASCADE);
         cascadeFileMenu.setText(I18N.getString("File"));
-        
+
         Menu fileMenu = new Menu(shell, SWT.DROP_DOWN);
         cascadeFileMenu.setMenu(fileMenu);
 
@@ -193,64 +191,64 @@ public class MainWindow {
          */
         MenuItem newGame = new MenuItem(fileMenu, SWT.PUSH);
         newGame.setText(I18N.getString("newGame"));
-        
+
         newGame.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-            	createNewGameView();
-            	
+                createNewGameView();
+
             }
         });
-        
+
         new MenuItem(fileMenu, SWT.SEPARATOR);
-        
+
         /*
          * restart game item
          */
         restartGame = new MenuItem(fileMenu, SWT.PUSH);
         restartGame.setText(I18N.getString("restartGame"));
-        
+
         restartGame.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-            	restartLastGame();
+                restartLastGame();
             }
 
         });
         restartGame.setEnabled(false);
-        
+
         new MenuItem(fileMenu, SWT.SEPARATOR);
-        
+
         /*
          * highscore menu item
          */
         MenuItem highscore = new MenuItem(fileMenu, SWT.PUSH);
         highscore.setText(I18N.getString("highscore"));
-        
+
         highscore.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-            	createHighscoreView();
+                createHighscoreView();
             }
         });
-        
+
         new MenuItem(fileMenu, SWT.SEPARATOR);
-        
+
         /*
          * undo button
          */
         MenuItem undo = new MenuItem(fileMenu, SWT.PUSH);
         undo.setText(I18N.getString("undo"));
-        
+
         undo.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-            	GameEventBus.instance().undoEvent();
+                GameEventBus.instance().undoEvent();
             }
         });
-        
+
         new MenuItem(fileMenu, SWT.SEPARATOR);
-        
+
         /*
          * exit menu item
          */
@@ -264,147 +262,153 @@ public class MainWindow {
             }
 
         });
-        
+
         shell.setMenuBar(menuBar);
-        
-        shell.pack();
-	}
 
-	public void createRootPanel() {
-		rootPanel = new Composite(rootWrapper, SWT.INHERIT_FORCE);
-		rootPanel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-		FillLayout glayout = new FillLayout();
-		rootPanel.setLayout(glayout);
-	}
-	
-	private void createCustomMenu() {
-		if (customMenu != null) {
-			customMenu.dispose();
-		}
-		
-		customMenu = new CustomMenu(rootWrapper, SWT.INHERIT_FORCE, this);
-		customMenu.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
-	}
-	
-	private void enableCustomMenu() {
-		customMenu.pack();
-	}
+//        shell.pack();
+        rootWrapper.layout();
+    }
 
-	public void exit() {
-		shell.getDisplay().dispose();
+    public void createRootPanel() {
+        rootPanel = new Composite(rootWrapper, SWT.INHERIT_FORCE);
+        rootPanel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+        FillLayout glayout = new FillLayout();
+        rootPanel.setLayout(glayout);
+    }
+
+    private void createCustomMenu() {
+        if (customMenu != null) {
+            customMenu.dispose();
+        }
+
+        customMenu = new CustomMenu(rootWrapper, SWT.INHERIT_FORCE, this);
+        customMenu.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+    }
+
+    private void enableCustomMenu() {
+        customMenu.pack();
+    }
+
+    public void exit() {
+        shell.getDisplay().dispose();
         System.exit(0);
-	}
-	
-	protected void restartLastGame() {
-		String currentName;
-		List<GameParameter<?>> params;
-		
-		synchronized (this) {
-    		Iterator<String> it = currentGame.keySet().iterator();
-        	if (!it.hasNext()) {
-        		return;
-        	}
-        	currentName = it.next();
-        	params = currentGame.get(currentName);
-		}
-    	
-    	/*
+    }
+
+    protected void restartLastGame() {
+        String currentName;
+        List<GameParameter<?>> params;
+
+        synchronized (this) {
+            Iterator<String> it = currentGame.keySet().iterator();
+            if (!it.hasNext()) {
+                return;
+            }
+            currentName = it.next();
+            params = currentGame.get(currentName);
+        }
+
+        /*
     	 * check existing impls and compare against the name
-    	 */
-    	ServiceLoader<GameView> l = ServiceLoader.load(GameView.class);
-    	
-    	GameView newView = null;
-		for (GameView gameView : l) {
-			if (gameView.getGameName().equals(currentName)) {
-				newView = gameView;
-			}
-		}
-    	
-		if (newView != null) {
-			createGameView(newView, params);
-		}
-	}
+         */
+        ServiceLoader<GameView> l = ServiceLoader.load(GameView.class);
 
-	public void createGameView(GameView gv, List<GameParameter<?>> list) {
-		clearRootPanel();
-		
-		createCustomMenu();
-		currentContentView = gv.initialize(rootPanel, SWT.NONE, list);
-		enableCustomMenu();
-		
-		shell.pack(true);
-		shell.layout(true, true);
-		
-		synchronized (this) {
-			this.currentGame.clear();
-			this.currentGame.put(gv.getGameName(), list);
-			this.restartGame.setEnabled(true);
-		}
-		
-	}
-	
-	public void createHighscoreView() {
-		clearRootPanel();
+        GameView newView = null;
+        for (GameView gameView : l) {
+            if (gameView.getGameName().equals(currentName)) {
+                newView = gameView;
+            }
+        }
 
-		createCustomMenu();
-		currentContentView = new HighscoreView(rootPanel, SWT.NONE);
-		shell.layout(true, true);
-	}
+        if (newView != null) {
+            createGameView(newView, params);
+        }
+    }
 
-	private void createWelcomePanel() {
-		clearRootPanel();
-		
-		currentContentView = new WelcomeView(rootPanel, SWT.INHERIT_FORCE, this);
-		
-		rootWrapper.layout();
-	}
+    public void createGameView(GameView gv, List<GameParameter<?>> list) {
+        clearRootPanel();
 
-	private void clearRootPanel() {
-		if (currentContentView != null) {
-			currentContentView.dispose();
-		}
-		if (customMenu != null) {
-			customMenu.dispose();
-		}
-		
-		rootPanel.dispose();
-		
-		createRootPanel();
-		rootWrapper.layout();
-	}
+        createCustomMenu();
+        currentContentView = gv.initialize(rootPanel, SWT.NONE, list);
+        enableCustomMenu();
 
-	private void appendKeyListeners() {
-		shell.addKeyListener(new KeyAdapter() {
+//        shell.pack(true);
+        rootWrapper.layout(true, true);
 
-			@Override
-			public void keyPressed(KeyEvent e) {
-				if (e.keyCode == SWT.F11) {
-					switchFullscreenState();
-				}
-			}
+        synchronized (this) {
+            this.currentGame.clear();
+            this.currentGame.put(gv.getGameName(), list);
+            this.restartGame.setEnabled(true);
+        }
 
-		});
-	}
+        if (this.fullscreen) {
+            this.fullscreen = false;
+            switchFullscreenState();
+        }
+        
+        currentContentView.setFocus();
+    }
 
-	protected void switchFullscreenState() {
-		this.fullscreen = !this.fullscreen;
-		shell.setFullScreen(fullscreen);
-		menuBar.setVisible(!this.fullscreen);
-		shell.layout(true, true);
-	}
+    public void createHighscoreView() {
+        clearRootPanel();
 
-	public static interface MainWindowOpenedListener {
+        createCustomMenu();
+        currentContentView = new HighscoreView(rootPanel, SWT.NONE);
+        currentContentView.setFocus();
+        rootWrapper.layout();
+    }
 
-		void onMainWindowOpened();
+    public void createWelcomePanel() {
+        clearRootPanel();
 
-	}
+        currentContentView = new WelcomeView(rootPanel, SWT.INHERIT_FORCE, this);
+        currentContentView.setFocus();
+        rootWrapper.layout();
+    }
 
-	public void createNewGameView() {
-		clearRootPanel();
-		
-		createCustomMenu();
-		currentContentView = new NewGameView(rootPanel, SWT.INHERIT_FORCE, this);
-		
-		rootWrapper.layout(true, true);
-	}
+    private void clearRootPanel() {
+        if (currentContentView != null) {
+            currentContentView.dispose();
+        }
+        if (customMenu != null) {
+            customMenu.dispose();
+        }
+
+        rootPanel.dispose();
+
+        createRootPanel();
+    }
+
+    private void appendKeyListeners() {
+        display.addFilter(SWT.ALL, new Listener() {
+            public void handleEvent(Event event) {
+                logger.info("Received key press: "+event.keyCode);
+                if (event.keyCode == SWT.F11 && event.stateMask == SWT.NONE) {
+                    logger.info("Switching full screen"); 
+                    switchFullscreenState();
+                }
+            }
+        });
+    }
+
+    protected void switchFullscreenState() {
+        this.fullscreen = !this.fullscreen;
+        shell.setFullScreen(fullscreen);
+        menuBar.setVisible(!this.fullscreen);
+        rootWrapper.layout(true, true);
+    }
+
+    public static interface MainWindowOpenedListener {
+
+        void onMainWindowOpened();
+
+    }
+
+    public void createNewGameView() {
+        clearRootPanel();
+
+        createCustomMenu();
+        currentContentView = new NewGameView(rootPanel, SWT.INHERIT_FORCE, this);
+        currentContentView.setFocus();
+        rootWrapper.layout();
+    }
 }

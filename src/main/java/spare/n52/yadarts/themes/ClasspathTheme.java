@@ -21,6 +21,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.widgets.Display;
 
 public class ClasspathTheme extends Theme {
@@ -105,7 +106,7 @@ public class ClasspathTheme extends Theme {
 	private void assertFileExists(String f) {
 		URL url = getClass().getResource(f);
 		if (url == null) {
-			throw new IllegalStateException("Missing theme resource.");
+			throw new IllegalStateException("Missing theme resource: "+f);
 		}
 	}
 
@@ -114,7 +115,8 @@ public class ClasspathTheme extends Theme {
 	 */
 	public synchronized Image getBoardHi(Display d) throws FileNotFoundException {
 		if (this.boardHiImage == null) {
-			this.boardHiImage = new Image(d, getClass().getResourceAsStream(boardHiResource));
+                        ImageData data = new ImageData(getClass().getResourceAsStream(boardHiResource));
+			this.boardHiImage = new Image(d, data, data);
 		}
 		
 		return this.boardHiImage;
@@ -125,7 +127,8 @@ public class ClasspathTheme extends Theme {
 	 */
 	public synchronized Image getBoardM(Display d) throws FileNotFoundException {
 		if (this.boardMImage == null) {
-			this.boardMImage = new Image(d, getClass().getResourceAsStream(boardMResource));
+                        ImageData data = new ImageData(getClass().getResourceAsStream(boardMResource));
+			this.boardMImage = new Image(d, data);
 		}
 		
 		return this.boardMImage;
@@ -136,7 +139,8 @@ public class ClasspathTheme extends Theme {
 	 */
 	public synchronized Image getBoardLo(Display d) throws FileNotFoundException {
 		if (this.boardLoImage == null) {
-			this.boardLoImage = new Image(d, getClass().getResourceAsStream(boardLoResource));
+                        ImageData data = new ImageData(getClass().getResourceAsStream(boardLoResource));
+			this.boardLoImage = new Image(d, data, data);
 		}
 		
 		return this.boardLoImage;

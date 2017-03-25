@@ -37,11 +37,11 @@ public abstract class Theme {
 	
 	private static final Logger logger = LoggerFactory.getLogger(Theme.class);
 	
-	protected static final String BOARD_HI = "board-hi.jpg";
-	protected static final String BOARD_M = "board-m.jpg";
-	protected static final String BOARD_LO = "board-lo.jpg";
+	protected static final String BOARD_HI = "board-hi.png";
+	protected static final String BOARD_M = "board-m.png";
+	protected static final String BOARD_LO = "board-lo.png";
 	protected static final String BASE_DIR = "/themes";
-	protected static final String DEFAULT_THEME = "plain";
+	protected static final String DEFAULT_THEME = "edarts-classic";
 	protected static final String BACKGROUND = "background.jpg";
 	protected static final String BACKGROUND_ALT = "background_alt.jpg";
 	protected static final String CORNER_TOP_LEFT = "corner_topleft.jpg";
