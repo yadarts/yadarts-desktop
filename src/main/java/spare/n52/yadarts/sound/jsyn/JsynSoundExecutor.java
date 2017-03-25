@@ -10,8 +10,10 @@ import com.jsyn.unitgen.VariableRateMonoReader;
 import com.jsyn.unitgen.VariableRateStereoReader;
 import com.jsyn.util.SampleLoader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.List;
+import static org.hamcrest.CoreMatchers.is;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import spare.n52.yadarts.sound.SoundExecutor;
@@ -33,6 +35,7 @@ public class JsynSoundExecutor implements SoundExecutor {
     
     @Override
     public void init(String soundPackageName) {
+        LOG.info("initing with sound package: "+soundPackageName);
         this.soundPackageName = soundPackageName;
         
         synth = JSyn.createSynthesizer();
@@ -57,14 +60,15 @@ public class JsynSoundExecutor implements SoundExecutor {
     
     @Override
     public void add(SoundId id) {
-        SampleLoader.setJavaSoundPreferred(true);
         FloatSample sample;
         try {
-            URL res = SoundId.resolveResource(id, soundPackageName);
-            if (res == null) {
+            String res = "/sounds/"+ soundPackageName + "/" + id.name().toLowerCase() + ".wav";
+            LOG.info("Loading sound: "+res);
+            InputStream is = getClass().getResourceAsStream(res);
+            if (is == null) {
                 return;
             }
-            sample = SampleLoader.loadFloatSample(res.openStream());
+            sample = SampleLoader.loadFloatSample(is);
         } catch (IOException ex) {
             LOG.warn("Could not load sound: ", ex.getMessage());
             return;
