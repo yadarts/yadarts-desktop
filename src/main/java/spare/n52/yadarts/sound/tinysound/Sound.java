@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package spare.n52.yadarts.sound;
+package spare.n52.yadarts.sound.tinysound;
 
 import java.net.URL;
 
@@ -23,6 +23,7 @@ import kuusisto.tinysound.TinySound;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import spare.n52.yadarts.sound.SoundId;
 
 public class Sound implements Runnable {
 	
@@ -38,10 +39,7 @@ public class Sound implements Runnable {
     		logger.debug("'{}' sound selected --> skipping",soundId.name());
     		return;
     	}
-    	final String resourcePath = "/sounds/"+ resourcename + "/" + soundId.name().toLowerCase() + "." + WAVE_SUFFIX_STRING;
-        logger.debug("Try to load resource '{}'", resourcePath);
-
-        final URL resource = getClass().getResource(resourcePath);
+        URL resource = SoundId.resolveResource(soundId, resourcename);
         
         if (resource == null) {
         	return;

@@ -23,11 +23,14 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import spare.n52.yadarts.common.Services;
+import spare.n52.yadarts.config.Configuration;
 
 
 import spare.n52.yadarts.entity.Player;
 import spare.n52.yadarts.entity.PointEvent;
 import spare.n52.yadarts.games.Score;
+import spare.n52.yadarts.sound.jsyn.JsynSoundExecutor;
 
 public class BasicSoundService implements SoundService {
 
@@ -45,7 +48,8 @@ public class BasicSoundService implements SoundService {
 	private boolean bounceOutPressed;
 	
 	public BasicSoundService() {
-		executor = new SoundExecutor();
+		executor = new JsynSoundExecutor();
+                executor.init(Services.getImplementation(Configuration.class).getSoundPackage());
 	}
 
 	/**

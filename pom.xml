@@ -47,7 +47,7 @@
 			</plugins>
 		</pluginManagement>
 		<plugins>
-			<plugin>
+<!--			<plugin>
 				<groupId>com.mycila</groupId>
 				<artifactId>license-maven-plugin</artifactId>
 				<configuration>
@@ -68,7 +68,7 @@
 						</goals>
 					</execution>
 				</executions>
-			</plugin>
+			</plugin>-->
 		</plugins>
 	</build>
 
@@ -81,6 +81,10 @@
 			<id>yadarts-maven</id>
 			<url>https://raw.github.com/yadarts/maven/master</url>
 		</repository>
+                <repository>
+                    <id>clojars</id>
+                    <url>http://clojars.org/repo/</url>
+                </repository>
 	</repositories>
 
 	<dependencyManagement>
@@ -172,6 +176,11 @@
 				<artifactId>tinysound</artifactId>
 				<version>1.1.1</version>
 			</dependency>
+                        <dependency>
+                            <groupId>org.clojars.sidec</groupId>
+                            <artifactId>jsyn</artifactId>
+                            <version>16.7.3</version>
+                        </dependency>
 
 
 			<!-- testing -->
@@ -246,6 +255,10 @@
 			<groupId>kuusisto</groupId>
 			<artifactId>tinysound</artifactId>
 		</dependency>
+                <dependency>
+                    <groupId>org.clojars.sidec</groupId>
+                    <artifactId>jsyn</artifactId>
+                </dependency>
 
 		<!-- testing -->
 		<dependency>

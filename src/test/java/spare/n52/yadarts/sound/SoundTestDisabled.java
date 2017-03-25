@@ -24,29 +24,31 @@ import kuusisto.tinysound.TinySound;
 
 import org.junit.Test;
 
-public class SoundTest {
+public class SoundTestDisabled {
 
 	@Test
 	public void testFilenames() throws IOException, InterruptedException {
 		// initialize TinySound
 		TinySound.init();
+                TinySound.shutdown();
+                TinySound.init();
 		// load a sound and music
 		// note: you can also load with Files, URLs and InputStreams
 		Music song = TinySound.loadMusic(getClass().getResource("/sounds/robot/bullseye.wav"));
 		Sound coin = TinySound.loadSound(getClass().getResource("/sounds/robot/jingle.wav"));
 		// start playing the music on loop
-		song.play(true);
-		song.playing();
+//		song.play(true);
+//		song.playing();
 		// play the sound a few times in a loop
-		for (int i = 0; i < 5; i++) {
-			coin.play();
+		for (int i = 0; i < 3; i++) {
 			try {
-				Thread.sleep(1000);
+				Thread.sleep(1500);
 			} catch (InterruptedException e) {
 			}
+                        coin.play();
 		}
 		
-		song.stop();
+//		song.stop();
 		// be sure to shutdown TinySound when done
 		TinySound.shutdown();
 	}

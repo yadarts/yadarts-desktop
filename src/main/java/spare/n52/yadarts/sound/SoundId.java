@@ -16,6 +16,8 @@
  */
 package spare.n52.yadarts.sound;
 
+import java.net.URL;
+
 public enum SoundId {
 	
 	Triple,Double,Single,BullsEye,y1,y2,y3,y4,y5,y6,y7,y8,y9,y10,y11,y12,y13,y14,y15,y16,y17,y18,y19,y20,y25,
@@ -106,5 +108,13 @@ public enum SoundId {
 			return DefaultPlayer;
 		}
 	}
+
+        public static URL resolveResource(SoundId soundId, String soundPackageName) {
+            if (soundId == None) {
+                return null;
+            }
+            String resourcePath = "/sounds/"+ soundPackageName + "/" + soundId.name().toLowerCase() + ".wav";
+            return SoundId.class.getResource(resourcePath);
+        }
 
 }
