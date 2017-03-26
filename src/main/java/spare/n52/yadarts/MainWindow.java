@@ -73,8 +73,6 @@ public class MainWindow {
 
     private Menu menuBar;
 
-    private Composite rootWrapper;
-
     private Composite customMenu;
     private final Display display;
 
@@ -155,24 +153,24 @@ public class MainWindow {
         shell.setLocation(x, y);
     }
 
-    protected void initLayout() {
+    protected final void initLayout() {
 //			shell.setBackgroundImage(Theme.getCurrentTheme().getBackground(shell.getDisplay()));
         shell.setBackgroundImage(new Image(shell.getDisplay(), getClass().getResourceAsStream("/images/background.jpg")));
-        shell.setBackgroundMode(SWT.INHERIT_FORCE);
+        shell.setBackgroundMode(SWT.BACKGROUND);
 
-        FillLayout layout = new FillLayout();
-        layout.marginHeight = 0;
-        layout.marginWidth = 0;
-        shell.setLayout(layout);
+//        FillLayout layout = new FillLayout();
+//        layout.marginHeight = 0;
+//        layout.marginWidth = 0;
+//        shell.setLayout(layout);
 
-        rootWrapper = new Composite(shell, SWT.INHERIT_FORCE);
+//        rootWrapper = new Composite(shell, SWT.NONE);
         GridLayout wrapperLayout = new GridLayout();
         wrapperLayout.numColumns = 1;
         wrapperLayout.verticalSpacing = 0;
         wrapperLayout.horizontalSpacing = 0;
         wrapperLayout.marginHeight = 0;
         wrapperLayout.marginWidth = 0;
-        rootWrapper.setLayout(wrapperLayout);
+        shell.setLayout(wrapperLayout);
 
 //		createCustomMenu();
         createRootPanel();
@@ -266,11 +264,11 @@ public class MainWindow {
         shell.setMenuBar(menuBar);
 
 //        shell.pack();
-        rootWrapper.layout();
+        shell.layout();
     }
 
     public void createRootPanel() {
-        rootPanel = new Composite(rootWrapper, SWT.INHERIT_FORCE);
+        rootPanel = new Composite(shell, SWT.NONE);
         rootPanel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
         FillLayout glayout = new FillLayout();
         rootPanel.setLayout(glayout);
@@ -281,7 +279,7 @@ public class MainWindow {
             customMenu.dispose();
         }
 
-        customMenu = new CustomMenu(rootWrapper, SWT.INHERIT_FORCE, this);
+        customMenu = new CustomMenu(shell, SWT.NONE, this);
         customMenu.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
     }
 
@@ -328,11 +326,11 @@ public class MainWindow {
         clearRootPanel();
 
         createCustomMenu();
-        currentContentView = gv.initialize(rootPanel, SWT.NONE, list);
+        currentContentView = gv.initialize(rootPanel, SWT.INHERIT_FORCE, list);
         enableCustomMenu();
 
 //        shell.pack(true);
-        rootWrapper.layout(true, true);
+        shell.layout();
 
         synchronized (this) {
             this.currentGame.clear();
@@ -354,7 +352,7 @@ public class MainWindow {
         createCustomMenu();
         currentContentView = new HighscoreView(rootPanel, SWT.NONE);
         currentContentView.setFocus();
-        rootWrapper.layout();
+        shell.layout();
     }
 
     public void createWelcomePanel() {
@@ -362,7 +360,7 @@ public class MainWindow {
 
         currentContentView = new WelcomeView(rootPanel, SWT.INHERIT_FORCE, this);
         currentContentView.setFocus();
-        rootWrapper.layout();
+        shell.layout();
     }
 
     private void clearRootPanel() {
@@ -394,7 +392,7 @@ public class MainWindow {
         this.fullscreen = !this.fullscreen;
         shell.setFullScreen(fullscreen);
         menuBar.setVisible(!this.fullscreen);
-        rootWrapper.layout(true, true);
+        shell.layout();
     }
 
     public static interface MainWindowOpenedListener {
@@ -409,6 +407,6 @@ public class MainWindow {
         createCustomMenu();
         currentContentView = new NewGameView(rootPanel, SWT.INHERIT_FORCE, this);
         currentContentView.setFocus();
-        rootWrapper.layout();
+        shell.layout();
     }
 }
