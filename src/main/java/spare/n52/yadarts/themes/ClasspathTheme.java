@@ -116,7 +116,7 @@ public class ClasspathTheme extends Theme {
 	public synchronized Image getBoardHi(Display d) throws FileNotFoundException {
 		if (this.boardHiImage == null) {
                         ImageData data = new ImageData(getClass().getResourceAsStream(boardHiResource));
-			this.boardHiImage = new Image(d, data, data);
+			this.boardHiImage = new Image(d, data);
 		}
 		
 		return this.boardHiImage;
@@ -140,7 +140,7 @@ public class ClasspathTheme extends Theme {
 	public synchronized Image getBoardLo(Display d) throws FileNotFoundException {
 		if (this.boardLoImage == null) {
                         ImageData data = new ImageData(getClass().getResourceAsStream(boardLoResource));
-			this.boardLoImage = new Image(d, data, data);
+			this.boardLoImage = new Image(d, data);
 		}
 		
 		return this.boardLoImage;
