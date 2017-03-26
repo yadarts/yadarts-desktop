@@ -49,6 +49,7 @@ import spare.n52.yadarts.games.GameEventBus;
 import spare.n52.yadarts.games.GameStatusUpdateListener;
 import spare.n52.yadarts.games.NoGameActiveException;
 import spare.n52.yadarts.games.Score;
+import spare.n52.yadarts.games.Turn;
 import spare.n52.yadarts.games.x01.GenericX01Game;
 import spare.n52.yadarts.i18n.I18N;
 import spare.n52.yadarts.layout.board.BoardView;
@@ -304,7 +305,7 @@ public abstract class BasicX01GameView extends AbstractGameView implements
     }
     
     @Override
-    public void onPointEvent(final PointEvent event) {
+    public void onPointEvent(final PointEvent event, Turn turn) {
         turnScoreMemory.push(event);
         processPointEvent(Integer.toString(event.getScoreValue()));
         theBoard.onPointEvent(event);

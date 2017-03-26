@@ -30,6 +30,7 @@ import spare.n52.yadarts.config.Configuration;
 import spare.n52.yadarts.entity.Player;
 import spare.n52.yadarts.entity.PointEvent;
 import spare.n52.yadarts.games.Score;
+import spare.n52.yadarts.games.Turn;
 import spare.n52.yadarts.sound.jsyn.JsynSoundExecutor;
 
 public class BasicSoundService implements SoundService {
@@ -165,7 +166,14 @@ public class BasicSoundService implements SoundService {
 	}
 
 	@Override
-	public void onPointEvent(final PointEvent event) {
+	public void onPointEvent(final PointEvent event, Turn turn) {
+                if (turn != null && turn.isBusted()) {
+                    /*
+                     * do not speak on bust
+                     */
+                    return;
+                }
+            
 		pointsMap.put(event.getBaseNumber(), event.getMultiplier());
 		
 		List<SoundId> list = new ArrayList<>();

@@ -35,21 +35,21 @@ public class CopyOfSoundTest {
 		Mockito.when(pointEvent.getBaseNumber()).thenReturn(25);
 		Mockito.when(pointEvent.getMultiplier()).thenReturn(2);
 		
-		soundService.onPointEvent(pointEvent);		
+		soundService.onPointEvent(pointEvent, null);		
 		
 		pointEvent = Mockito.mock(PointEvent.class);
 		
 		Mockito.when(pointEvent.getBaseNumber()).thenReturn(7);
 		Mockito.when(pointEvent.getMultiplier()).thenReturn(1);
 		
-		soundService.onPointEvent(pointEvent);
+		soundService.onPointEvent(pointEvent, null);
 		
 		pointEvent = Mockito.mock(PointEvent.class);
 		
 		Mockito.when(pointEvent.getBaseNumber()).thenReturn(3);
 		Mockito.when(pointEvent.getMultiplier()).thenReturn(1);
 		
-		soundService.onPointEvent(pointEvent);
+		soundService.onPointEvent(pointEvent, null);
 		
 		soundService.onTurnFinished(Mockito.mock(Player.class), Mockito.mock(Score.class));
 				

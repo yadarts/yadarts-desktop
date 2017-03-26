@@ -47,6 +47,7 @@ import spare.n52.yadarts.games.GameAlreadyActiveException;
 import spare.n52.yadarts.games.GameEventBus;
 import spare.n52.yadarts.games.NoGameActiveException;
 import spare.n52.yadarts.games.Score;
+import spare.n52.yadarts.games.Turn;
 import spare.n52.yadarts.games.cricket.CricketGame;
 import spare.n52.yadarts.i18n.I18N;
 import spare.n52.yadarts.layout.AbstractGameView;
@@ -250,7 +251,7 @@ public class CricketGameView extends AbstractGameView {
 	}
 
 	@Override
-	public void onPointEvent(final PointEvent event) {
+	public void onPointEvent(final PointEvent event, Turn turn) {
 		processPointEvent(Integer.toString(event.getScoreValue()));
 		theBoard.onPointEvent(event);
 	}
