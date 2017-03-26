@@ -228,7 +228,7 @@ public abstract class BasicX01GameView extends AbstractGameView implements
     }
     
     private void createLeftBar(Composite container) {
-        leftBar = new BorderedControlContainer(container, SWT.NONE) {
+        leftBar = new BorderedControlContainer(container, SWT.INHERIT_FORCE) {
             
             @Override
             protected Control createContents(Composite parent) {
