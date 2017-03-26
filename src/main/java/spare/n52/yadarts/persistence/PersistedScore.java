@@ -20,6 +20,7 @@ import java.util.Date;
 
 import spare.n52.yadarts.entity.Player;
 import spare.n52.yadarts.games.Score;
+import spare.n52.yadarts.games.Turn;
 
 public class PersistedScore implements Score, Comparable<PersistedScore> {
 
@@ -107,7 +108,15 @@ public class PersistedScore implements Score, Comparable<PersistedScore> {
 	public boolean lastTurnTerminatedCorrect() {
 		return true;
 	}
-	
-	
+
+        @Override
+        public Turn getLastTurn() {
+            return new Turn() {
+                @Override
+                public boolean isBusted() {
+                    return false;
+                }
+            };
+        }
 	
 }

@@ -117,7 +117,7 @@ public class BasicSoundService implements SoundService {
 			boolean single5Hit = (pointsMap.keySet().contains(5) && (pointsMap.get(5) == 1));
 			boolean single20Hit = (pointsMap.keySet().contains(20) && (pointsMap.get(20) == 1));
 			
-			if (single1Hit && single5Hit && single20Hit) {
+			if (single1Hit && single5Hit && single20Hit && !score.getLastTurn().isBusted()) {
 				list.add(SoundId.Upper_Classic);
 			}
 			
@@ -125,7 +125,7 @@ public class BasicSoundService implements SoundService {
 			boolean single7Hit = (pointsMap.keySet().contains(7) && (pointsMap.get(7) == 1));
 			boolean single19Hit = (pointsMap.keySet().contains(19) && (pointsMap.get(19) == 1));
 			
-			if (single3Hit && single7Hit && single19Hit) {
+			if (single3Hit && single7Hit && single19Hit && !score.getLastTurn().isBusted()) {
 				list.add(SoundId.Lower_Classic);
 			}
 
