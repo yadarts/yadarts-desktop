@@ -33,6 +33,7 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.slf4j.Logger;
@@ -51,12 +52,13 @@ public class BoardView extends Composite {
 	private Image imageM;
 	private Image imageHi;
 	private Image imageLo;
-	private Label theBoard;
-	private Image background;
+	private Canvas theBoard;
 	private List<DynamicPolarCoordinate> arrows = new ArrayList<>();
 	private Point currentCenter;
 	private int currentRadius;
 	private int currentDartSize;
+    private int currentWidthHeight;
+    private Image currentImage;
 
 	public BoardView(final Composite parent, int style) {
 		super(parent, style);
@@ -66,18 +68,23 @@ public class BoardView extends Composite {
 			imageM = Theme.getCurrentTheme().getBoardM(getDisplay());
 			imageHi = Theme.getCurrentTheme().getBoardHi(getDisplay());
 			imageLo = Theme.getCurrentTheme().getBoardLo(getDisplay());
-			background = Theme.getCurrentTheme().getBackground(getDisplay());
 		} catch (FileNotFoundException e1) {
 			logger.warn(e1.getMessage(), e1);
 			throw new IllegalStateException("The theme is not correctly configured");
 		}
 		
 
-		theBoard = new Label(this, SWT.NONE);
-		theBoard.setBackgroundImage(background);
-		theBoard.setImage(imageM);
-		theBoard.setAlignment(SWT.CENTER);
-		
+		theBoard = new Canvas(this, SWT.INHERIT_FORCE);
+		theBoard.addPaintListener(new PaintListener() {
+                    public void paintControl(PaintEvent e) {
+                        GC gc = e.gc;
+                        gc.setAntialias(SWT.ON);
+                        gc.setInterpolation(SWT.HIGH);
+                        gc.drawImage(currentImage,
+                                0, 0, currentImage.getBounds().width, currentImage.getBounds().height,
+                                currentCenter.x - currentWidthHeight/2, currentCenter.y - currentWidthHeight/2, currentWidthHeight, currentWidthHeight);
+                    }
+                });
 
 		theBoard.addControlListener(new ControlAdapter() {
 
@@ -86,11 +93,11 @@ public class BoardView extends Composite {
 				super.controlResized(e);
 				Rectangle newBounds = theBoard.getBounds();
 
-				int newWidthHeight = Math
+				BoardView.this.currentWidthHeight = Math
 						.min(newBounds.height, newBounds.width);
 
-				theBoard.setImage(resize(newWidthHeight,
-						newWidthHeight));
+				BoardView.this.currentImage = resize(currentWidthHeight,
+						currentWidthHeight);
 
 				parent.layout();
 			}
@@ -124,26 +131,11 @@ public class BoardView extends Composite {
 			image = imageLo;
 		}
 		
-		Image scaled = new Image(getDisplay(), width, height);
-		
-		GC gc = new GC(scaled);
-		try {
-			gc.setAntialias(SWT.ON);
-			gc.setInterpolation(SWT.HIGH);	
-		}
-		catch (SWTException e) {
-			logger.warn(e.getMessage());
-			logger.debug(e.getMessage(), e);
-		}
-		
-		gc.drawImage(image, 0, 0, image.getBounds().width,
-				image.getBounds().height, 0, 0, width, height);
-		
-		updateScaleRatio(scaled);
-		
-		gc.dispose();
-		
-		return scaled;
+		Image scaled = new Image(image.getDevice(), width, height);
+                updateScaleRatio(scaled);
+                scaled.dispose();
+                
+		return image;
 	}
 
 	private void updateScaleRatio(Image image) {
