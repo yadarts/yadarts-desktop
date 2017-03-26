@@ -55,7 +55,16 @@ public class CustomMenu extends Composite {
 		rl.marginWidth = 5;
 		rl.spacing = 10;
 		wrapper.setLayout(rl);
-		
+
+		ImageControl home = new ImageControl(wrapper, SWT.NONE);
+		home.setImage(new MenuImage("home", getDisplay(), 25));
+		home.setClickListener(new ImageControl.ClickListener() {
+			
+			public void onClickEvent() {
+				mw.createWelcomePanel();
+			}
+		});
+                
 		ImageControl newGame = new ImageControl(wrapper, SWT.NONE);
 		newGame.setImage(new MenuImage("new_game", getDisplay(), 25));
 		newGame.setClickListener(new ImageControl.ClickListener() {
