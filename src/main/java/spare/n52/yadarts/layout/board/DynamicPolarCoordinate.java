@@ -109,7 +109,7 @@ public class DynamicPolarCoordinate {
 		double deltaX = targetDistance * Math.cos(Math.toRadians(angle));
 		double deltaY = targetDistance * Math.sin(Math.toRadians(angle));
 		
-		logger.info("Delta x: {}, Delta y: {}", deltaX, deltaY);
+		logger.trace("Delta x: {}, Delta y: {}", deltaX, deltaY);
 		
 		double x = center.x + deltaX;
 		double y = center.y - deltaY;

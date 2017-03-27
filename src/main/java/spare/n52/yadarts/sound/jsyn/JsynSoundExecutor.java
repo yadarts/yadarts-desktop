@@ -63,7 +63,7 @@ public class JsynSoundExecutor implements SoundExecutor {
         FloatSample sample;
         try {
             String res = "/sounds/"+ soundPackageName + "/" + id.name().toLowerCase() + ".wav";
-            LOG.info("Loading sound: "+res);
+            LOG.trace("Loading sound: "+res);
             InputStream is = getClass().getResourceAsStream(res);
             if (is == null) {
                 return;

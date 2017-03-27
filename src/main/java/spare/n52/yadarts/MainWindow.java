@@ -379,7 +379,6 @@ public class MainWindow {
     private void appendKeyListeners() {
         display.addFilter(SWT.ALL, new Listener() {
             public void handleEvent(Event event) {
-                logger.info("Received key press: "+event.keyCode);
                 if (event.keyCode == SWT.F11 && event.stateMask == SWT.NONE) {
                     logger.info("Switching full screen"); 
                     switchFullscreenState();

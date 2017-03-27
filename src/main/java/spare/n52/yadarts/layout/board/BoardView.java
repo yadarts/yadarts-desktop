@@ -35,7 +35,6 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Label;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,8 +56,8 @@ public class BoardView extends Composite {
 	private Point currentCenter;
 	private int currentRadius;
 	private int currentDartSize;
-    private int currentWidthHeight;
-    private Image currentImage;
+        private int currentWidthHeight;
+        private Image currentImage;
 
 	public BoardView(final Composite parent, int style) {
 		super(parent, style);
@@ -108,7 +107,7 @@ public class BoardView extends Composite {
 			
 			@Override
 			public void paintControl(PaintEvent e) {
-				logger.debug("current center is {}", currentCenter);
+				logger.trace("current center is {}", currentCenter);
 				
 				for (DynamicPolarCoordinate c : arrows) {
 					drawDartAt(c.calculatePoint(currentCenter, currentRadius), e.gc);					
