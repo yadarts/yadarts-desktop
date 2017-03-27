@@ -53,8 +53,6 @@ import spare.n52.yadarts.i18n.I18N;
 import spare.n52.yadarts.layout.AbstractGameView;
 import spare.n52.yadarts.layout.GameParameter;
 import spare.n52.yadarts.layout.board.BoardView;
-import spare.n52.yadarts.persistence.HighscorePersistence;
-import spare.n52.yadarts.persistence.PersistencyException;
 import spare.n52.yadarts.sound.SoundService;
 import spare.n52.yadarts.themes.BorderedControlContainer;
 import spare.n52.yadarts.themes.Theme;
@@ -327,6 +325,8 @@ public class CricketGameView extends AbstractGameView {
             Score score = playerScoreMap.get(player);
             LOG.info("{}: {}", player, score);
             
+            /**
+             * TODO: fix highscore persistence for cricket
             if (score.getTotalScore() != 0) {
                 try {
                     Services.getImplementation(HighscorePersistence.class)
@@ -335,6 +335,7 @@ public class CricketGameView extends AbstractGameView {
                     LOG.warn(e.getMessage(), e);
                 }
             }
+            */
         }
         
         updateLabel(wrapper, statusBar, String.format(I18N.getString("gameHasEnded"), winner.toString()));
