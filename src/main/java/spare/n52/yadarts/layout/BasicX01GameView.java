@@ -61,7 +61,7 @@ import spare.n52.yadarts.themes.BorderedControlContainer;
 public abstract class BasicX01GameView extends AbstractGameView implements
         GameStatusUpdateListener {
     
-    private static final Logger logger = LoggerFactory
+    private static final Logger LOG = LoggerFactory
             .getLogger(BasicX01GameView.class);
     
     private Label currentScore;
@@ -110,7 +110,7 @@ public abstract class BasicX01GameView extends AbstractGameView implements
                     try {
                         GameEventBus.instance().endGame(x01Game);
                     } catch (NoGameActiveException e1) {
-                        logger.warn(e1.getMessage(), e1);
+                        LOG.warn(e1.getMessage(), e1);
                     }
                     
                 }
@@ -135,7 +135,7 @@ public abstract class BasicX01GameView extends AbstractGameView implements
         try {
             startGame();
         } catch (InitializationException | AlreadyRunningException e) {
-            logger.warn(e.getMessage(), e);
+            LOG.warn(e.getMessage(), e);
         }
         
         return this.wrapper;
@@ -155,7 +155,7 @@ public abstract class BasicX01GameView extends AbstractGameView implements
         try {
             GameEventBus.instance().startGame(x01Game);
         } catch (GameAlreadyActiveException e) {
-            logger.warn(e.getMessage(), e);
+            LOG.warn(e.getMessage(), e);
         }
         
     }
@@ -299,7 +299,7 @@ public abstract class BasicX01GameView extends AbstractGameView implements
     public void onBust(final Player p, final Score remaining) {
         final String s = String.format(I18N.getString("playerBusted"),
                 p.getName(), remaining.getTotalScore());
-        logger.info(s);
+        LOG.info(s);
         updateLabel(this.wrapper, statusBar, s);
         playerTable.setRemainingScore(p, remaining);
     }
@@ -339,9 +339,9 @@ public abstract class BasicX01GameView extends AbstractGameView implements
     
     @Override
     public void onRoundStarted(int rounds) {
-        logger.info("+++++++++++++++++++");
-        logger.info("Round {} started!", rounds);
-        logger.info("+++++++++++++++++++");
+        LOG.info("+++++++++++++++++++");
+        LOG.info("Round {} started!", rounds);
+        LOG.info("+++++++++++++++++++");
         updateLabel(this.wrapper, statusBar, String.format(I18N.getString("roundStarted"), rounds));
         updateLabel(this.wrapper, roundLabel, Integer.toString(rounds));
     }
@@ -349,7 +349,7 @@ public abstract class BasicX01GameView extends AbstractGameView implements
     @Override
     public void onFinishingCombination(
             List<List<PointEvent>> finishingCombinations) {
-        logger.info("Player can finished with the following combinations:");
+        LOG.info("Player can finished with the following combinations:");
         
         if (finishingCombinations == null) {
             return;
@@ -362,7 +362,7 @@ public abstract class BasicX01GameView extends AbstractGameView implements
                 sb.append(pe);
                 sb.append(" + ");
             }
-            logger.info(sb.toString());
+            LOG.info(sb.toString());
             this.finishingCombinations.setText(sb.toString());
             this.finishingCombinations.setVisible(true);
             finishingCombinationsLabel.setVisible(true);
@@ -371,7 +371,7 @@ public abstract class BasicX01GameView extends AbstractGameView implements
     
     @Override
     public void onTurnFinished(Player finishedPlayer, Score remainingScore) {
-        logger.info("Player {} finished the turn. Remaining points: {}",
+        LOG.info("Player {} finished the turn. Remaining points: {}",
                 finishedPlayer, remainingScore.getTotalScore());
         updateLabel(this.wrapper, statusBar, String.format(
                 I18N.getString("playerFinishedTurn"),
@@ -380,7 +380,7 @@ public abstract class BasicX01GameView extends AbstractGameView implements
     
     @Override
     public void onRemainingScoreForPlayer(Player currentPlayer, Score remainingScore) {
-        logger.info("Player {}'s remaining points: {}", currentPlayer,
+        LOG.info("Player {}'s remaining points: {}", currentPlayer,
                 remainingScore.getTotalScore());
         updateLabel(this.wrapper, currentScore, Integer.toString(remainingScore.getTotalScore()));
         playerTable.setRemainingScore(currentPlayer, remainingScore);
@@ -388,31 +388,31 @@ public abstract class BasicX01GameView extends AbstractGameView implements
     
     @Override
     public void requestNextPlayerEvent() {
-        logger.info("Please press 'Next Player'!");
+        LOG.info("Please press 'Next Player'!");
         updateLabel(this.wrapper, statusBar, I18N.getString("requestNextPlayer"));
     }
     
     @Override
     public void onPlayerFinished(Player currentPlayer) {
-        logger.info("Player {} finished!!!!!!! You are a Dart god!",
+        LOG.info("Player {} finished!!!!!!! You are a Dart god!",
                 currentPlayer);
         updateLabel(this.wrapper, statusBar, String.format(I18N.getString("playerFinished"), currentPlayer.getName()));
     }
     
     @Override
     public void onGameFinished(Map<Player, Score> playerScoreMap, List<Player> winner) {
-        logger.info("The game has ended!");
+        LOG.info("The game has ended!");
         
         for (Player player : playerScoreMap.keySet()) {
             Score score = playerScoreMap.get(player);
-            logger.info("{}: {}", player, score);
+            LOG.info("{}: {}", player, score);
             
             if (score.getTotalScore() == 0) {
                 try {
                     Services.getImplementation(HighscorePersistence.class)
                             .addHighscoreEntry(x01Game.getClass(), score);
                 } catch (PersistencyException e) {
-                    logger.warn(e.getMessage(), e);
+                    LOG.warn(e.getMessage(), e);
                 }
             }
         }

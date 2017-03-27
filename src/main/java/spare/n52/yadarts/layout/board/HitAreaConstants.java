@@ -21,7 +21,7 @@ import java.util.Map;
 
 public class HitAreaConstants {
 
-	private static Map<Integer, Integer> angleMap = new HashMap<>();
+	private static final Map<Integer, Integer> ANGLE_MAP = new HashMap<>();
 
 	public static final Deviation[] OUTER_RING_DEVIATION = new Deviation[] {
 		new Deviation(3, 1.18), new Deviation(1, 0.85)
@@ -43,26 +43,26 @@ public class HitAreaConstants {
 	};
 	
 	static {
-		angleMap.put(6, 0);
-		angleMap.put(13, 1*18);
-		angleMap.put(4, 2*18);
-		angleMap.put(18, 3*18);
-		angleMap.put(1, 4*18);
-		angleMap.put(20, 90);
-		angleMap.put(5, 90+1*18);
-		angleMap.put(12, 90+2*18);
-		angleMap.put(9, 90+3*18);
-		angleMap.put(14, 90+4*18);
-		angleMap.put(11, 180);
-		angleMap.put(8, 180+1*18);
-		angleMap.put(16, 180+2*18);
-		angleMap.put(7, 180+3*18);
-		angleMap.put(19, 180+4*18);
-		angleMap.put(3, 270);
-		angleMap.put(17, 270+1*18);
-		angleMap.put(2, 270+2*18);
-		angleMap.put(15, 270+3*18);
-		angleMap.put(10, 270+4*18);
+		ANGLE_MAP.put(6, 0);
+		ANGLE_MAP.put(13, 1*18);
+		ANGLE_MAP.put(4, 2*18);
+		ANGLE_MAP.put(18, 3*18);
+		ANGLE_MAP.put(1, 4*18);
+		ANGLE_MAP.put(20, 90);
+		ANGLE_MAP.put(5, 90+1*18);
+		ANGLE_MAP.put(12, 90+2*18);
+		ANGLE_MAP.put(9, 90+3*18);
+		ANGLE_MAP.put(14, 90+4*18);
+		ANGLE_MAP.put(11, 180);
+		ANGLE_MAP.put(8, 180+1*18);
+		ANGLE_MAP.put(16, 180+2*18);
+		ANGLE_MAP.put(7, 180+3*18);
+		ANGLE_MAP.put(19, 180+4*18);
+		ANGLE_MAP.put(3, 270);
+		ANGLE_MAP.put(17, 270+1*18);
+		ANGLE_MAP.put(2, 270+2*18);
+		ANGLE_MAP.put(15, 270+3*18);
+		ANGLE_MAP.put(10, 270+4*18);
 	}
 	
 	/**
@@ -70,7 +70,7 @@ public class HitAreaConstants {
 	 * @return the angle for the polar coordinate of the hit number
 	 */
 	public static int getAngle(int base) {
-		return angleMap.get(base);
+		return ANGLE_MAP.get(base);
 	}
 	
 }

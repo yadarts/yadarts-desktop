@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.SWTException;
 import org.eclipse.swt.events.ControlAdapter;
 import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.PaintEvent;
@@ -43,7 +42,7 @@ import spare.n52.yadarts.themes.Theme;
 
 public class BoardView extends Composite {
 	
-	private static final Logger logger = LoggerFactory.getLogger(BoardView.class);
+	private static final Logger LOG = LoggerFactory.getLogger(BoardView.class);
 	private static final int MAX_M_SIZE = 1000;
 	private static final int MAX_LO_SIZE = 750;
 	private final Color dartColor = new Color(getDisplay(), new RGB(255, 0, 255));
@@ -68,7 +67,7 @@ public class BoardView extends Composite {
 			imageHi = Theme.getCurrentTheme().getBoardHi(getDisplay());
 			imageLo = Theme.getCurrentTheme().getBoardLo(getDisplay());
 		} catch (FileNotFoundException e1) {
-			logger.warn(e1.getMessage(), e1);
+			LOG.warn(e1.getMessage(), e1);
 			throw new IllegalStateException("The theme is not correctly configured");
 		}
 		
@@ -107,7 +106,7 @@ public class BoardView extends Composite {
 			
 			@Override
 			public void paintControl(PaintEvent e) {
-				logger.trace("current center is {}", currentCenter);
+				LOG.trace("current center is {}", currentCenter);
 				
 				for (DynamicPolarCoordinate c : arrows) {
 					drawDartAt(c.calculatePoint(currentCenter, currentRadius), e.gc);					

@@ -228,7 +228,7 @@ public abstract class AbstractJDBCPersistence implements HighscorePersistence {
 			return PREFIX.concat(anno.highscorePersistentName());
 		}
 		else {
-			return PREFIX.concat(theGame.getClass().getSimpleName());
+			return PREFIX.concat(theGame.getSimpleName());
 		}
 	}
 
